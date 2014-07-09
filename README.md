@@ -11,3 +11,6 @@ https://github.com/OpenNI/OpenNI
 
 OpenNI の本  
 http://www.amazon.co.jp/exec/obidos/ASIN/4798039160?ie=UTF8&tag=shuwa01-22&linkCode=as2
+
+MD 記法の説明  
+https://guides.github.com/features/mastering-markdown/
