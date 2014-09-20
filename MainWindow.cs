@@ -17,7 +17,7 @@ namespace SimpleViewer.net
         {
             InitializeComponent();
 
-            this.context = Context.CreateFromXmlFile(SAMPLE_XML_FILE, out scriptNode);
+            this.context = Context.CreateFromXmlFile(SAMPLE_XML_FILE, out scriptNode);//SampleConfigのアドレス、変えよう。
 
             this.sessionManager = new SessionManager(context, "Wave", "RaiseHand");
             sessionManager.SessionStart += new EventHandler<PositionEventArgs>(sessionManager_SessionStart);
