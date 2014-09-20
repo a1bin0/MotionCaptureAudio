@@ -1,0 +1,45 @@
+<OpenNI>
+
+<Licenses>
+
+</Licenses>
+
+<Log writeToConsole="false" writeToFile="false">
+
+<LogLevel value="3"/>
+
+<Masks>
+<Mask name="ALL" on="true"/>
+</Masks>
+
+<Dumps>
+</Dumps>
+
+</Log>
+
+<ProductionNodes>
+		
+<GlobalMirror on="true"/>
+
+
+<Node type="Depth" name="MyDepth">
+
+<Query>
+
+</Query>
+
+<Configuration>
+</Configuration>
+
+</Node>
+
+<Node type="Image" stopOnError="false" />
+
+
+<Node type="Scene"/>
+<Node type="User"/>
+<Node type="Gesture"/>
+<Node type="Hands"/>
+</ProductionNodes>
+
+</OpenNI>
