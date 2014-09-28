@@ -76,7 +76,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="XnVNITE.net, Version=1.5.2.21, Culture=neutral, PublicKeyToken=399870656fc6c787, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files\PrimeSense\NITE\Bin\XnVNITE.net.dll</HintPath>
+      <HintPath>obj\x86\Debug\XnVNITE.net.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
