@@ -15,7 +15,7 @@ namespace SimpleViewer.net
 			Application.SetCompatibleTextRenderingDefault(false);
 			try
 			{
-				Application.Run(new MainWindow());
+                Application.Run(new MainWindow());
 			}
 			catch (System.Exception ex)
 			{

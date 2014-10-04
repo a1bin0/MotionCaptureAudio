@@ -9,6 +9,8 @@ using NITE;
 using OpenNI;
 using System.Diagnostics;
 using System.Collections.Generic;
+//using BassSample;
+//using BassSample.Controller;
 
 namespace SimpleViewer.net
 {
@@ -36,15 +38,21 @@ namespace SimpleViewer.net
 
         private Dictionary<ActionId, DateTime> timeStamp = new Dictionary<ActionId, DateTime>();
 
-        static readonly int interval = 5;
+        static readonly int interval = 3;
+
+        //private BassSample.Player player;
+
+        //public BassSample.Controller.AudioPlayer audioPlayer;
 
         public MainWindow()
         {
             InitializeComponent();
-            this.context = Context.CreateFromXmlFile(@"../../MotionCaptureAudio/Setting/Config.xml", out scriptNode);
-            this.sessionManager = new SessionManager(context, "Wave");
+            this.context = Context.CreateFromXmlFile(@"./Config.xml", out scriptNode);
+            this.sessionManager = new SessionManager(context, "RaiseHand");
             sessionManager.SessionStart += new EventHandler<PositionEventArgs>(sessionManager_SessionStart);
             var now = DateTime.Now.AddSeconds(-interval);
+
+            //this.player = new BassSample.Player();
 
             timeStamp[ActionId.push] = now;
             timeStamp[ActionId.stable] = now;
@@ -80,7 +88,7 @@ namespace SimpleViewer.net
 
             MapOutputMode mapMode = this.depth.MapOutputMode;
 
-            Console.WriteLine("手を振ってNITEを初期化してください");
+            Console.WriteLine("手を翳してNITEを初期化してください");
 
             this.bitmap = new Bitmap((int)mapMode.XRes, (int)mapMode.YRes, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
             this.shouldRun = true;
