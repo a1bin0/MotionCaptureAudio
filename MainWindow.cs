@@ -9,20 +9,17 @@ using NITE;
 using OpenNI;
 using System.Diagnostics;
 using System.Collections.Generic;
-//using BassSample;
-//using BassSample.Controller;
+using MotionCaptureAudio;
+using MotionCaptureAudio.Controller;
 
-namespace SimpleViewer.net
+namespace MotionCaptureAudio
 {
     public partial class MainWindow : Form
     {
         private Context context;
         private ScriptNode scriptNode;
-        private DepthGenerator depth;
         private Thread readerThread;
         private bool shouldRun;
-        private Bitmap bitmap;
-        private int[] histogram;
         private SessionManager sessionManager;
 
         enum ActionId
@@ -36,13 +33,50 @@ namespace SimpleViewer.net
             steady,
         }
 
+        public EventHandler PlayRequest = null;
+        public EventHandler PauseRequest = null;
+        public EventHandler VolumeUpRequest = null;
+        public EventHandler VolumeDownRequest = null;
+
         private Dictionary<ActionId, DateTime> timeStamp = new Dictionary<ActionId, DateTime>();
 
         static readonly int interval = 3;
 
-        //private BassSample.Player player;
+        private MotionCaptureAudio.Player player;
 
-        //public BassSample.Controller.AudioPlayer audioPlayer;
+        public MotionCaptureAudio.Controller.AudioPlayer audioPlayer;
+
+        private void notifyPlayEvent()
+        {
+            if (this.PlayRequest != null)
+            {
+                this.PlayRequest(this, EventArgs.Empty);
+            }
+        }
+
+        private void notifyPauseEvent()
+        {
+            if (this.PauseRequest != null)
+            {
+                this.PauseRequest(this, EventArgs.Empty);
+            }
+        }
+
+        private void notifyVolumeUp()
+        {
+            if (this.VolumeUpRequest != null)
+            {
+                this.VolumeUpRequest(this, EventArgs.Empty);
+            }
+        }
+
+        private void notifyVolumeDown()
+        {
+            if (this.VolumeDownRequest != null)
+            {
+                this.VolumeDownRequest(this, EventArgs.Empty);
+            }
+        }
 
         public MainWindow()
         {
@@ -51,8 +85,6 @@ namespace SimpleViewer.net
             this.sessionManager = new SessionManager(context, "RaiseHand");
             sessionManager.SessionStart += new EventHandler<PositionEventArgs>(sessionManager_SessionStart);
             var now = DateTime.Now.AddSeconds(-interval);
-
-            //this.player = new BassSample.Player();
 
             timeStamp[ActionId.push] = now;
             timeStamp[ActionId.stable] = now;
@@ -78,20 +110,13 @@ namespace SimpleViewer.net
             steady.Steady += new EventHandler<SteadyEventArgs>(steady_Steady);
             sessionManager.AddListener(steady);
 
-            this.depth = context.FindExistingNode(NodeType.Depth) as DepthGenerator;
-            if (this.depth == null)
-            {
-                throw new Exception("Viewer must have a depth node!");
-            }
-
-            this.histogram = new int[this.depth.DeviceMaxDepth];
-
-            MapOutputMode mapMode = this.depth.MapOutputMode;
-
             Console.WriteLine("手を翳してNITEを初期化してください");
 
-            this.bitmap = new Bitmap((int)mapMode.XRes, (int)mapMode.YRes, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
             this.shouldRun = true;
+        }
+
+        public void StartThread()
+        {
             this.readerThread = new Thread(ReaderThread);
             this.readerThread.Start();
         }
@@ -109,6 +134,8 @@ namespace SimpleViewer.net
             {
                 Console.WriteLine("(/・ω・)/彡☆マエ");
                 timeStamp[ActionId.push] = DateTime.Now;
+
+                this.notifyPlayEvent();
             }
         }
 
@@ -120,6 +147,8 @@ namespace SimpleViewer.net
             {
                 Console.WriteLine("|дﾟ)バックオーライ");
                 timeStamp[ActionId.stable] = DateTime.Now;
+
+                this.notifyPlayEvent();
             }
         }
 
@@ -131,6 +160,8 @@ namespace SimpleViewer.net
             {
                 Console.WriteLine("<m(__)m>シタムキ");
                 timeStamp[ActionId.down] = DateTime.Now;
+
+                //this.
             }
         }
 
@@ -175,26 +206,9 @@ namespace SimpleViewer.net
             {
                 Console.WriteLine("くコ:彡イカ！イカ！ストップ！");
                 timeStamp[ActionId.steady] = DateTime.Now;
+
+                this.notifyPauseEvent();
             }
-        }
-
-        protected override void OnPaint(PaintEventArgs e)
-        {
-            base.OnPaint(e);
-
-            lock (this)
-            {
-                e.Graphics.DrawImage(this.bitmap,
-                    this.panelView.Location.X,
-                    this.panelView.Location.Y,
-                    this.panelView.Size.Width,
-                    this.panelView.Size.Height);
-            }
-        }
-
-        protected override void OnPaintBackground(PaintEventArgs pevent)
-        {
-            //Don't allow the background to paint
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -204,94 +218,19 @@ namespace SimpleViewer.net
             base.OnClosing(e);
         }
 
-        protected override void OnKeyPress(KeyPressEventArgs e)
-        {
-            if (e.KeyChar == 27)
-            {
-                Close();
-            }
-            base.OnKeyPress(e);
-        }
-
-        private unsafe void CalcHist(DepthMetaData depthMD)
-        {
-            // reset
-            for (int i = 0; i < this.histogram.Length; ++i)
-                this.histogram[i] = 0;
-
-            ushort* pDepth = (ushort*)depthMD.DepthMapPtr.ToPointer();
-
-            int points = 0;
-            for (int y = 0; y < depthMD.YRes; ++y)
-            {
-                for (int x = 0; x < depthMD.XRes; ++x, ++pDepth)
-                {
-                    ushort depthVal = *pDepth;
-                    if (depthVal != 0)
-                    {
-                        this.histogram[depthVal]++;
-                        points++;
-                    }
-                }
-            }
-
-            for (int i = 1; i < this.histogram.Length; i++)
-            {
-                this.histogram[i] += this.histogram[i - 1];
-            }
-
-            if (points > 0)
-            {
-                for (int i = 1; i < this.histogram.Length; i++)
-                {
-                    this.histogram[i] = (int)(256 * (1.0f - (this.histogram[i] / (float)points)));
-                }
-            }
-        }
-
         private unsafe void ReaderThread()
         {
-            DepthMetaData depthMD = new DepthMetaData();
-
             while (this.shouldRun)
             {
                 try
                 {
-                    this.context.WaitOneUpdateAll(this.depth);
+                    this.context.WaitAnyUpdateAll();
                     this.sessionManager.Update(context);
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    Debug.WriteLine("エラー" + e.StackTrace);
                 }
-
-                this.depth.GetMetaData(depthMD);
-
-                CalcHist(depthMD);
-
-                lock (this)
-                {
-                    Rectangle rect = new Rectangle(0, 0, this.bitmap.Width, this.bitmap.Height);
-                    BitmapData data = this.bitmap.LockBits(rect, ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format24bppRgb);
-
-                    ushort* pDepth = (ushort*)this.depth.DepthMapPtr.ToPointer();
-
-                    // set pixels
-                    for (int y = 0; y < depthMD.YRes; ++y)
-                    {
-                        byte* pDest = (byte*)data.Scan0.ToPointer() + y * data.Stride;
-                        for (int x = 0; x < depthMD.XRes; ++x, ++pDepth, pDest += 3)
-                        {
-                            byte pixel = (byte)this.histogram[*pDepth];
-                            pDest[0] = 0;
-                            pDest[1] = pixel;
-                            pDest[2] = pixel;
-                        }
-                    }
-
-                    this.bitmap.UnlockBits(data);
-                }
-
-                this.Invalidate();
             }
         }
     }

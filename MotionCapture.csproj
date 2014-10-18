@@ -8,8 +8,8 @@
     <ProjectGuid>{29CC3A9A-5CB1-4D53-B221-45181C4B281B}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SimpleViewer.net</RootNamespace>
-    <AssemblyName>SimpleViewer.net</AssemblyName>
+    <RootNamespace>MotionCaptureAudio</RootNamespace>
+    <AssemblyName>MotionCaptureAudio</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ApplicationIcon>..\Res\mainicon.ico</ApplicationIcon>
@@ -40,7 +40,7 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <StartupObject>SimpleViewer.net.Program</StartupObject>
+    <StartupObject>MotionCaptureAudio.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="OpenNI.net, Version=1.0.0.23, Culture=neutral, processorArchitecture=x86">
@@ -81,6 +81,12 @@
     <Compile Include="..\Res\AssemblyInfo-OpenNI.cs">
       <Link>AssemblyInfo-OpenNI.cs</Link>
     </Compile>
+    <Compile Include="TopForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TopForm.Designer.cs">
+      <DependentUpon>TopForm.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -89,9 +95,18 @@
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="TopForm.resx">
+      <DependentUpon>TopForm.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="BassSample\Audio.csproj">
+      <Project>{c24af3fc-5bc8-4d56-862f-4b36aa5faaba}</Project>
+      <Name>Audio</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

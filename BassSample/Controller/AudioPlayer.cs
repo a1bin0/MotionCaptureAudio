@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Un4seen.Bass;
 
-namespace BassSample.Controller
+namespace MotionCaptureAudio.Controller
 {
     /// <summary>
     /// Bass.Net を利用して音楽再生を行います。

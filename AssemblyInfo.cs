@@ -2,5 +2,5 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-[assembly: AssemblyTitle("SimpleViewer.net")]
+[assembly: AssemblyTitle("MotionCaptureAudio")]
 [assembly: AssemblyDescription("")]

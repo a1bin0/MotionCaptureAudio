@@ -4,7 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using System.Drawing;
 
-namespace SimpleViewer.net
+namespace MotionCaptureAudio
 {
 	static class Program
 	{
@@ -15,7 +15,7 @@ namespace SimpleViewer.net
 			Application.SetCompatibleTextRenderingDefault(false);
 			try
 			{
-                Application.Run(new MainWindow());
+                Application.Run(new TopForm());
 			}
 			catch (System.Exception ex)
 			{

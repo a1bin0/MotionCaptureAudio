@@ -1,4 +1,4 @@
-﻿namespace SimpleViewer.net
+﻿namespace MotionCaptureAudio
 {
 	partial class MainWindow
 	{

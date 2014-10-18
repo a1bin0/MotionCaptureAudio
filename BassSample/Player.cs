@@ -1,9 +1,9 @@
-﻿using BassSample.Controller;
+﻿using MotionCaptureAudio.Controller;
 using System;
 using System.IO;
 using System.Windows.Forms;
 
-namespace BassSample
+namespace MotionCaptureAudio
 {
     public enum Result
     {
@@ -23,17 +23,19 @@ namespace BassSample
             this.initializeComboBox();
         }
 
+        public void Play(object sender, EventArgs e)
+        {
+            this.play();
+        }
+
+        public void Pause(object sender, EventArgs e)
+        {
+            this.pause();
+        }
+
         private void createAudioPlayer()
         {
             this.audioPlayer = new AudioPlayer();
-            if (this.audioPlayer == null)
-            {
-                Console.WriteLine("nullだよ");
-            }
-            else
-            {
-                Console.WriteLine("playerある");
-            }
         }
 
         private void initializeComboBox()
@@ -49,24 +51,22 @@ namespace BassSample
                     comboBoxDevice.SelectedItem = dname;
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
-                MessageBox.Show("Exception occurred!" + Environment.NewLine + e.ToString());
                 return;
             }
         }
 
-        private Result initializeInstance()
+        private Result initializeInstance(string fileName)
         {
             try
             {
-                var result =this.audioPlayer.InitializeInstance(this.comboBoxDevice.SelectedIndex, this.labelName.Text);
+                var result = this.audioPlayer.InitializeInstance(this.comboBoxDevice.SelectedIndex, fileName);
                 return result;
             }
             catch (FileNotFoundException)
             {
                 MessageBox.Show("File not found.");
-                this.labelName.Text = string.Empty;
                 return Result.NG;
             }
         }
@@ -84,45 +84,88 @@ namespace BassSample
             var dialogResult = this.openFileDialog.ShowDialog();
 
             if (dialogResult != DialogResult.OK) return;
+            if (this.initializeInstance(this.openFileDialog.FileName) != Result.OK) return;
 
-            this.labelName.Text = this.openFileDialog.FileName;
+            this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
+            this.buttonSound.Enabled = true;
+            this.buttonFile.Enabled = true;
+            //this.buttonSound.Text = "Pause";
+            //this.timer.Start();
+            //this.audioPlayer.Play();
+        }
 
-            if (this.initializeInstance() != Result.OK) return;
+        private void buttonSound_Click(object sender, EventArgs e)
+        {
+            if (buttonSound.Text == "Play")
+            {
+                this.play();
+            }
+            else
+            {
+                this.pause();
+            }
+        }
 
+        public void play()
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(this.play));
+                return;
+            }
+
+            this.buttonSound.Text = "Pause";
+            this.buttonFile.Text = "Reset";
             this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
             this.timer.Start();
             this.audioPlayer.Play();
-            this.updateButtonStatus();
         }
 
-        private void buttonPlay_Click(object sender, EventArgs e)
+        public void pause()
         {
-            this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
-            this.timer.Start();
-            this.audioPlayer.Play();
-            this.updateButtonStatus();
-        }
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(this.pause));
+                return;
+            }
 
-        private void buttonPause_Click(object sender, EventArgs e)
-        {
+            this.buttonSound.Text = "Play";
             this.audioPlayer.Pause();
             this.timer.Stop();
-            this.updateButtonStatus();
         }
 
-        private void buttonStop_Click(object sender, EventArgs e)
+        private void buttonFile_Click(object sender, EventArgs e)
         {
-            this.audioPlayer.Stop();
-            this.timer.Stop();
-            this.clearTime();
-            this.updateButtonStatus();
-        }
+            if (this.buttonFile.Text == "Reset")
+            {
+                this.buttonSound.Text = "Play";
+                this.buttonFile.Text = "Select";
+                this.audioPlayer.Stop();
+                this.timer.Stop();
+                this.clearTime();
+            }
+            else
+            {
+                if (this.comboBoxDevice.SelectedIndex < 0)
+                {
+                    MessageBox.Show("Please select device");
+                    return;
+                }
 
-        private void updateButtonStatus()
-        {
-            this.buttonPlay.Enabled = this.labelName.Text != string.Empty && this.audioPlayer.PlayState != PlayState.Playing;
-            this.buttonPause.Enabled = this.audioPlayer.PlayState == PlayState.Playing;
-            this.buttonStop.Enabled = this.labelName.Text != string.Empty && this.audioPlayer.PlayState != PlayState.Stopped;
+                this.openFileDialog.InitialDirectory = @"";
+                this.openFileDialog.Filter = "MP3File(*.mp3)|*.mp3";
+                var dialogResult = this.openFileDialog.ShowDialog();
+
+                if (dialogResult != DialogResult.OK) return;
+                if (this.initializeInstance(this.openFileDialog.FileName) != Result.OK) return;
+
+                this.buttonFile.Text = "Reset";
+                this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
+                this.buttonSound.Enabled = true;
+                this.buttonFile.Enabled = true;
+                this.timer.Start();
+                this.audioPlayer.Play();
+            }
         }
 
         private void trackBarVolume_Scroll(object sender, EventArgs e)
@@ -132,12 +175,12 @@ namespace BassSample
 
         private void timer_Tick(object sender, EventArgs e)
         {
-            this.labelCurrentTimeValue.Text = this.audioPlayer.CurrentTime.ToString(@"mm\:ss") + " / " + this.audioPlayer.Duration.ToString(@"mm\:ss");
+            this.Text = this.audioPlayer.CurrentTime.ToString(@"mm\:ss") + "/" + this.audioPlayer.Duration.ToString(@"mm\:ss");
         }
 
         private void clearTime()
         {
-            this.labelCurrentTimeValue.Text = string.Empty;
+            this.Text = "00:00/" + this.audioPlayer.Duration.ToString(@"mm\:ss");
         }
     }
 }

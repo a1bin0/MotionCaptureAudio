@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace BassSample.Controller
+namespace MotionCaptureAudio.Controller
 {
     /// <summary>
     /// 音楽再生を行う為のインターフェースです。
