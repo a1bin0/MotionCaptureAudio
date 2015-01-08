@@ -12,7 +12,7 @@
     <AssemblyName>MotionCaptureAudio</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <ApplicationIcon>..\Res\mainicon.ico</ApplicationIcon>
+    <ApplicationIcon>mainicon.ico</ApplicationIcon>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <OldToolsVersion>3.5</OldToolsVersion>
@@ -43,9 +43,9 @@
     <StartupObject>MotionCaptureAudio.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="OpenNI.net, Version=1.0.0.23, Culture=neutral, processorArchitecture=x86">
+    <Reference Include="OpenNI.net, Version=1.5.4.0, Culture=neutral, PublicKeyToken=6b43d0c6cf74ee7f, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
+      <HintPath>obj\x86\Debug\OpenNI.net.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -62,10 +62,7 @@
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-    <Reference Include="XnVNITE.net, Version=1.5.2.21, Culture=neutral, PublicKeyToken=399870656fc6c787, processorArchitecture=x86">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>obj\x86\Debug\XnVNITE.net.dll</HintPath>
-    </Reference>
+    <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs">
@@ -76,16 +73,11 @@
     <Compile Include="MainWindow.designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
+    <Compile Include="MotionDetector.cs" />
     <Compile Include="Program.cs">
     </Compile>
     <Compile Include="..\Res\AssemblyInfo-OpenNI.cs">
       <Link>AssemblyInfo-OpenNI.cs</Link>
-    </Compile>
-    <Compile Include="TopForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="TopForm.Designer.cs">
-      <DependentUpon>TopForm.cs</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -94,9 +86,6 @@
   <ItemGroup>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="TopForm.resx">
-      <DependentUpon>TopForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -107,6 +96,9 @@
       <Project>{c24af3fc-5bc8-4d56-862f-4b36aa5faaba}</Project>
       <Name>Audio</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="mainicon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

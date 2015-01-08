@@ -1,214 +1,174 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Drawing;
-using System.Windows.Forms;
 using System.Threading;
-using System.Drawing.Imaging;
-using System.Reflection;
-using NITE;
+using System.Windows.Forms;
+using System.Windows.Threading;
 using OpenNI;
-using System.Diagnostics;
 using System.Collections.Generic;
-using MotionCaptureAudio;
-using MotionCaptureAudio.Controller;
+using System.Drawing;
 
 namespace MotionCaptureAudio
 {
     public partial class MainWindow : Form
     {
+        #region instance fields
+
         private Context context;
         private ScriptNode scriptNode;
         private Thread readerThread;
-        private bool shouldRun;
-        private SessionManager sessionManager;
-
-        enum ActionId
-        {
-            push,
-            stable,
-            down,
-            up,
-            right,
-            left,
-            steady,
-        }
-
-        public EventHandler PlayRequest = null;
-        public EventHandler PauseRequest = null;
-        public EventHandler VolumeUpRequest = null;
-        public EventHandler VolumeDownRequest = null;
-
+        private bool shouldRun = true;
+        private DepthGenerator depth;
+        private UserGenerator user;
+        private Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
+        private MotionDetector motionDetector;
         private Dictionary<ActionId, DateTime> timeStamp = new Dictionary<ActionId, DateTime>();
-
-        static readonly int interval = 3;
-
         private MotionCaptureAudio.Player player;
 
-        public MotionCaptureAudio.Controller.AudioPlayer audioPlayer;
+        private Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>> joints = new Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>();
 
-        private void notifyPlayEvent()
+        private List<Panel> statusPanels = new List<Panel>();
+
+        #endregion instance fields
+
+        /// <summary>
+        /// モーションのパターンです
+        /// </summary>
+        enum ActionId
         {
-            if (this.PlayRequest != null)
-            {
-                this.PlayRequest(this, EventArgs.Empty);
-            }
+            down,
+            up,
+            overHead,
+            left,
         }
 
-        private void notifyPauseEvent()
-        {
-            if (this.PauseRequest != null)
-            {
-                this.PauseRequest(this, EventArgs.Empty);
-            }
-        }
+        /// <summary>
+        /// 同モーションを無視する時間(sec)です
+        /// /// </summary>
+        static readonly int interval = 2;
 
-        private void notifyVolumeUp()
-        {
-            if (this.VolumeUpRequest != null)
-            {
-                this.VolumeUpRequest(this, EventArgs.Empty);
-            }
-        }
-
-        private void notifyVolumeDown()
-        {
-            if (this.VolumeDownRequest != null)
-            {
-                this.VolumeDownRequest(this, EventArgs.Empty);
-            }
-        }
+        #region constructors
 
         public MainWindow()
         {
             InitializeComponent();
-            this.context = Context.CreateFromXmlFile(@"./Config.xml", out scriptNode);
-            this.sessionManager = new SessionManager(context, "RaiseHand");
-            sessionManager.SessionStart += new EventHandler<PositionEventArgs>(sessionManager_SessionStart);
-            var now = DateTime.Now.AddSeconds(-interval);
 
-            timeStamp[ActionId.push] = now;
-            timeStamp[ActionId.stable] = now;
-            timeStamp[ActionId.down] = now;
-            timeStamp[ActionId.up] = now;
-            timeStamp[ActionId.right] = now;
-            timeStamp[ActionId.left] = now;
-            timeStamp[ActionId.steady] = now;
+            this.statusPanels.Add(this.sign1);
+            this.statusPanels.Add(this.sign2);
+            this.statusPanels.Add(this.sign3);
+            this.statusPanels.Add(this.sign4);
+            this.statusPanels.Add(this.sign5);
 
-            PushDetector push = new PushDetector();
-            push.Push += new EventHandler<VelocityAngleEventArgs>(push_Push);
-            push.Stable += new EventHandler<VelocityEventArgs>(push_Stable);
-            sessionManager.AddListener(push);
+            this.context = Context.CreateFromXmlFile(@"Config2.xml", out this.scriptNode);
+            this.depth = context.FindExistingNode(NodeType.Depth) as DepthGenerator;
+            this.context.GlobalMirror = true;
+            this.setupMotiondetector();
 
-            SwipeDetector swipe = new SwipeDetector();
-            swipe.SwipeDown += new EventHandler<VelocityAngleEventArgs>(swipe_SwipeDown);
-            swipe.SwipeUp += new EventHandler<VelocityAngleEventArgs>(swipe_SwipeUp);
-            swipe.SwipeRight += new EventHandler<VelocityAngleEventArgs>(swipe_SwipeRight);
-            swipe.SwipeLeft += new EventHandler<VelocityAngleEventArgs>(swipe_SwipeLeft);
-            sessionManager.AddListener(swipe);
+            this.user = new UserGenerator(context);
+            this.user.NewUser += this.user_NewUser;
+            this.user.LostUser += this.user_Lost;
+            this.user.SkeletonCapability.CalibrationComplete += this.SkeletonCapability_CalibrationComplete;
+            this.user.SkeletonCapability.SetSkeletonProfile(SkeletonProfile.All);
 
-            SteadyDetector steady = new SteadyDetector();
-            steady.Steady += new EventHandler<SteadyEventArgs>(steady_Steady);
-            sessionManager.AddListener(steady);
+            DateTime now = DateTime.Now.AddSeconds(-interval);
 
-            Console.WriteLine("手を翳してNITEを初期化してください");
-
-            this.shouldRun = true;
-        }
-
-        public void StartThread()
-        {
-            this.readerThread = new Thread(ReaderThread);
-            this.readerThread.Start();
-        }
-
-        void sessionManager_SessionStart(object sender, PositionEventArgs e)
-        {
-            Console.WriteLine("上下左右前後と停止のジェスチャーを認識します");
-        }
-
-        private void push_Push(object sender, VelocityAngleEventArgs e)
-        {
-            int timeSpan = DateTime.Now.Subtract(timeStamp[ActionId.push]).Seconds;
-
-            if (timeSpan > interval)
+            //全モーションのタイムスタンプに現在時刻を設定します
+            foreach (ActionId id in Enum.GetValues(typeof(ActionId)))
             {
-                Console.WriteLine("(/・ω・)/彡☆マエ");
-                timeStamp[ActionId.push] = DateTime.Now;
+                timeStamp[id] = now;
+            }
 
-                this.notifyPlayEvent();
+            this.context.StartGeneratingAll();
+            this.player = new Player();
+        }
+
+        #endregion constructors
+
+        #region methods
+        #endregion methods
+
+        protected override void OnLoad(EventArgs e)
+        {
+            base.OnLoad(e);
+            new Action(this.ReaderThread).BeginInvoke(null, null);
+        }
+
+        private void setupMotiondetector()
+        {
+            this.motionDetector = new MotionDetector(this.depth);
+            this.motionDetector.LeftHandDownDetected += this.leftHandDownDetected;
+            this.motionDetector.LeftHandUpDetected += this.leftHandUpDetected;
+            this.motionDetector.LeftHandSwipeLeftDetected += this.leftHandSwipeLeftDetected;
+            this.motionDetector.LeftHandOverHeadDetected += this.leftHandOverHeadDetected;
+        }
+
+        private void leftHandDownDetected(object sender, EventArgs e)
+        {
+            if (this.player.CanPlay)
+            {
+                if (DateTime.Now.Subtract(timeStamp[ActionId.up]).Seconds > interval)
+                {
+                    timeStamp[ActionId.down] = DateTime.Now;
+                    this.player.VolumeDown();
+                }
             }
         }
 
-        private void push_Stable(object sender, VelocityEventArgs e)
+        private void leftHandUpDetected(object sender, EventArgs e)
         {
-            int timeSpan = DateTime.Now.Subtract(timeStamp[ActionId.stable]).Seconds;
-
-            if (timeSpan > interval)
+            if (this.player.CanPlay)
             {
-                Console.WriteLine("|дﾟ)バックオーライ");
-                timeStamp[ActionId.stable] = DateTime.Now;
-
-                this.notifyPlayEvent();
+                if (DateTime.Now.Subtract(timeStamp[ActionId.up]).Seconds > interval)
+                {
+                    timeStamp[ActionId.up] = DateTime.Now;
+                    this.player.VolumeUp();
+                }
             }
         }
 
-        private void swipe_SwipeDown(object sender, VelocityAngleEventArgs e)
+        private void leftHandSwipeLeftDetected(object sender, EventArgs e)
         {
-            int timeSpan = DateTime.Now.Subtract(timeStamp[ActionId.down]).Seconds;
-
-            if (timeSpan > interval)
+            if (this.player.CanPlay)
             {
-                Console.WriteLine("<m(__)m>シタムキ");
-                timeStamp[ActionId.down] = DateTime.Now;
-
-                //this.
+                if (DateTime.Now.Subtract(timeStamp[ActionId.left]).Seconds > interval)
+                {
+                    timeStamp[ActionId.left] = DateTime.Now;
+                    this.player.Pause();
+                }
             }
         }
 
-        private void swipe_SwipeUp(object sender, VelocityAngleEventArgs e)
+        private void leftHandOverHeadDetected(object sender, EventArgs e)
         {
-            int timeSpan = DateTime.Now.Subtract(timeStamp[ActionId.up]).Seconds;
-
-            if (timeSpan > interval)
+            if (this.player.CanPlay)
             {
-                Console.WriteLine("Σ(･ω･ﾉ)ﾉウエ！");
-                timeStamp[ActionId.up] = DateTime.Now;
+                if (DateTime.Now.Subtract(timeStamp[ActionId.overHead]).Seconds > interval)
+                {
+                    timeStamp[ActionId.overHead] = DateTime.Now;
+                    this.player.Play();
+                }
             }
         }
 
-        private void swipe_SwipeRight(object sender, VelocityAngleEventArgs e)
+        void SkeletonCapability_CalibrationComplete(object sender, CalibrationProgressEventArgs e)
         {
-            int timeSpan = DateTime.Now.Subtract(timeStamp[ActionId.right]).Seconds;
-
-            if (timeSpan > interval)
+            if (e.Status == CalibrationStatus.OK)
             {
-                Console.WriteLine("(￣▽￣)(￣▽￣)ミギニオナジ");
-                timeStamp[ActionId.right] = DateTime.Now;
+                user.SkeletonCapability.StartTracking(e.ID);
+                this.statusPanels[e.ID - 1].BackColor = Color.Green;
             }
         }
 
-        private void swipe_SwipeLeft(object sender, VelocityAngleEventArgs e)
+        void user_NewUser(object sender, NewUserEventArgs e)
         {
-            int timeSpan = DateTime.Now.Subtract(timeStamp[ActionId.left]).Seconds;
-
-            if (timeSpan > interval)
-            {
-                Console.WriteLine("(-_-メ)ヒダリホホヲフショウ");
-                timeStamp[ActionId.left] = DateTime.Now;
-            }
+            Console.WriteLine(String.Format("ユーザ検出: {0}", e.ID));
+            this.statusPanels[e.ID-1].BackColor = Color.Yellow;
+            user.SkeletonCapability.RequestCalibration(e.ID, true);
         }
 
-        private void steady_Steady(object sender, SteadyEventArgs e)
+        private void user_Lost(object sender, UserLostEventArgs e)
         {
-            int timeSpan = DateTime.Now.Subtract(timeStamp[ActionId.steady]).Seconds;
-
-            if (timeSpan > interval)
-            {
-                Console.WriteLine("くコ:彡イカ！イカ！ストップ！");
-                timeStamp[ActionId.steady] = DateTime.Now;
-
-                this.notifyPauseEvent();
-            }
+            Console.WriteLine(String.Format("ユーザ消失: {0}", e.ID));
+            this.statusPanels[e.ID - 1].BackColor = Color.Gray;
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -218,20 +178,96 @@ namespace MotionCaptureAudio
             base.OnClosing(e);
         }
 
-        private unsafe void ReaderThread()
+        private void ReaderThread()
         {
             while (this.shouldRun)
             {
-                try
+                this.context.WaitAndUpdateAll();
+
+                this.dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
                 {
-                    this.context.WaitAnyUpdateAll();
-                    this.sessionManager.Update(context);
-                }
-                catch (Exception e)
-                {
-                    Debug.WriteLine("エラー" + e.StackTrace);
-                }
+                    int[] users = user.GetUsers();
+                    foreach (int u in users)
+                    {
+                        if (!user.SkeletonCapability.IsTracking(u)) continue;
+
+                        var pointDict = new Dictionary<SkeletonJoint, SkeletonJointPosition>();
+                        foreach (SkeletonJoint s in Enum.GetValues(typeof(SkeletonJoint)))
+                        {
+                            if (!user.SkeletonCapability.IsJointAvailable(s)) continue;
+                            pointDict.Add(s, user.SkeletonCapability.GetSkeletonJointPosition(u, s));
+                        }
+
+                        this.motionDetector.DetectMotion(u, pointDict);
+                        var mae = new List<Object>() { u, pointDict };
+                        this.Invoke(new Action<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>(drawSkeleton), mae.ToArray());
+                        this.pictBox.Invalidate();
+                    }
+                }));
             }
+        }
+
+        private void drawSkeleton(int user, Dictionary<SkeletonJoint, SkeletonJointPosition> pointDict)
+        {
+            Graphics g = this.pictBox.CreateGraphics();
+            List<Color> userColors = new List<Color>() { Color.Blue, Color.Red, Color.Green, Color.Orange, Color.Purple, Color.Plum };
+
+            Color color = userColors[user];
+            //Debug.WriteLine(this.joints[user][SkeletonJoint.Neck]);
+
+            DrawLine(g, color, pointDict, SkeletonJoint.Head, SkeletonJoint.Neck);
+
+            DrawLine(g, color, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.Torso);
+            DrawLine(g, color, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.Torso);
+
+            DrawLine(g, color, pointDict, SkeletonJoint.Neck, SkeletonJoint.LeftShoulder);
+            DrawLine(g, color, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.LeftElbow);
+            DrawLine(g, color, pointDict, SkeletonJoint.LeftElbow, SkeletonJoint.LeftHand);
+
+            DrawLine(g, color, pointDict, SkeletonJoint.Neck, SkeletonJoint.RightShoulder);
+            DrawLine(g, color, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.RightElbow);
+            DrawLine(g, color, pointDict, SkeletonJoint.RightElbow, SkeletonJoint.RightHand);
+
+            DrawLine(g, color, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.Torso);
+            DrawLine(g, color, pointDict, SkeletonJoint.RightHip, SkeletonJoint.Torso);
+            DrawLine(g, color, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.RightHip);
+
+            DrawLine(g, color, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.LeftKnee);
+            DrawLine(g, color, pointDict, SkeletonJoint.LeftKnee, SkeletonJoint.LeftFoot);
+
+            DrawLine(g, color, pointDict, SkeletonJoint.RightHip, SkeletonJoint.RightKnee);
+            DrawLine(g, color, pointDict, SkeletonJoint.RightKnee, SkeletonJoint.RightFoot);
+        }
+
+        private void GetJoint(int user, SkeletonJoint joint)
+        {
+            SkeletonJointPosition pos = this.user.SkeletonCapability.GetSkeletonJointPosition(user, joint);
+            if (pos.Position.Z == 0)
+            {
+                pos.Confidence = 0;
+            }
+            else
+            {
+                pos.Position = this.depth.ConvertRealWorldToProjective(pos.Position);
+            }
+            this.joints[user][joint] = pos;
+        }
+
+        private void DrawLine(Graphics g, Color color, Dictionary<SkeletonJoint, SkeletonJointPosition> dict, SkeletonJoint j1, SkeletonJoint j2)
+        {
+            
+            Point3D pos1 = this.depth.ConvertRealWorldToProjective(dict[j1].Position);
+            Point3D pos2 = this.depth.ConvertRealWorldToProjective(dict[j2].Position);
+
+            if (dict[j1].Confidence == 0 || dict[j2].Confidence == 0)
+                return;
+
+//            Debug.WriteLine("["+dict[j1].Position.ToString() +"]"+pos1.X.ToString() + "," + pos1.Y.ToString());
+            g.DrawLine( new Pen(color, 3),
+                        new Point((int)(pos1.X), (int)(pos1.Y)),
+                        new Point((int)(pos2.X), (int)(pos2.Y)));
+
+            this.pictBox.Invalidate();
         }
     }
 }

@@ -13,24 +13,15 @@ namespace MotionCaptureAudio
 
     public partial class Player : Form
     {
+        public bool CanPlay;
         private AudioPlayer audioPlayer;
 
         public Player()
         {
             InitializeComponent();
-
             this.createAudioPlayer();
             this.initializeComboBox();
-        }
-
-        public void Play(object sender, EventArgs e)
-        {
-            this.play();
-        }
-
-        public void Pause(object sender, EventArgs e)
-        {
-            this.pause();
+            this.Show();
         }
 
         private void createAudioPlayer()
@@ -87,84 +78,68 @@ namespace MotionCaptureAudio
             if (this.initializeInstance(this.openFileDialog.FileName) != Result.OK) return;
 
             this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
-            this.buttonSound.Enabled = true;
-            this.buttonFile.Enabled = true;
-            //this.buttonSound.Text = "Pause";
-            //this.timer.Start();
-            //this.audioPlayer.Play();
+            this.buttonPlayPause.Enabled = true;
+            this.buttonSelect.Enabled = true;
+            this.CanPlay = true;
         }
 
-        private void buttonSound_Click(object sender, EventArgs e)
-        {
-            if (buttonSound.Text == "Play")
-            {
-                this.play();
-            }
-            else
-            {
-                this.pause();
-            }
-        }
-
-        public void play()
+        public void Play()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(this.play));
+                this.Invoke(new Action(this.Play));
                 return;
             }
 
-            this.buttonSound.Text = "Pause";
-            this.buttonFile.Text = "Reset";
+            this.buttonPlayPause.Text = "Pause";
+            this.buttonSelect.Text = "Reset";
             this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
             this.timer.Start();
             this.audioPlayer.Play();
         }
 
-        public void pause()
+        public void Pause()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(this.pause));
+                this.Invoke(new Action(this.Pause));
                 return;
             }
 
-            this.buttonSound.Text = "Play";
+            this.buttonPlayPause.Text = "Play";
             this.audioPlayer.Pause();
             this.timer.Stop();
         }
 
-        private void buttonFile_Click(object sender, EventArgs e)
+        public void VolumeUp()
         {
-            if (this.buttonFile.Text == "Reset")
+            if (this.trackBarVolume.Value >= 10) return;
+            if (this.InvokeRequired)
             {
-                this.buttonSound.Text = "Play";
-                this.buttonFile.Text = "Select";
-                this.audioPlayer.Stop();
-                this.timer.Stop();
-                this.clearTime();
+                this.Invoke(new Action(this.VolumeUp));
+                return;
             }
-            else
+
+            if (this.audioPlayer.Volume < 1.0)
             {
-                if (this.comboBoxDevice.SelectedIndex < 0)
-                {
-                    MessageBox.Show("Please select device");
-                    return;
-                }
+                this.audioPlayer.Volume += 0.1f;
+                this.trackBarVolume.Value += 1;
+            }
+        }
 
-                this.openFileDialog.InitialDirectory = @"";
-                this.openFileDialog.Filter = "MP3File(*.mp3)|*.mp3";
-                var dialogResult = this.openFileDialog.ShowDialog();
+        public void VolumeDown()
+        {
+            if ((this.audioPlayer.Volume == 0 ) || (this.trackBarVolume.Value == 0)) return;
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(this.VolumeDown));
+                return;
+            }
 
-                if (dialogResult != DialogResult.OK) return;
-                if (this.initializeInstance(this.openFileDialog.FileName) != Result.OK) return;
-
-                this.buttonFile.Text = "Reset";
-                this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
-                this.buttonSound.Enabled = true;
-                this.buttonFile.Enabled = true;
-                this.timer.Start();
-                this.audioPlayer.Play();
+            if (this.audioPlayer.Volume > 0.0)
+            {
+                this.audioPlayer.Volume -= 0.1f;
+                this.trackBarVolume.Value -= 1;
             }
         }
 
@@ -181,6 +156,18 @@ namespace MotionCaptureAudio
         private void clearTime()
         {
             this.Text = "00:00/" + this.audioPlayer.Duration.ToString(@"mm\:ss");
+        }
+
+        private void buttonPlayPause_Click(object sender, EventArgs e)
+        {
+            if (buttonPlayPause.Text == "Play")
+            {
+                this.Play();
+            }
+            else
+            {
+                this.Pause();
+            }
         }
     }
 }

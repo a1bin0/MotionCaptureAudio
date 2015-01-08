@@ -15,11 +15,11 @@ namespace MotionCaptureAudio
 			Application.SetCompatibleTextRenderingDefault(false);
 			try
 			{
-                Application.Run(new TopForm());
+                Application.Run(new MainWindow());
 			}
 			catch (System.Exception ex)
 			{
-				MessageBox.Show("Error: " + ex.Message, "SimpleViewer", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Error: " + ex.Message, "MotionCaptureAudio", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
 		}
 	}
