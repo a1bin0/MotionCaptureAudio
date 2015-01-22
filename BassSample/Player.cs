@@ -33,14 +33,14 @@ namespace MotionCaptureAudio
         {
             try
             {
-                foreach (var bdi in this.audioPlayer.GetDevice())
-                {
-                    string dname = "";
-                    if (bdi.IsDefault) dname = "*";
-                    dname += bdi.name;
-                    comboBoxDevice.Items.Add(dname);
-                    comboBoxDevice.SelectedItem = dname;
-                }
+                //foreach (var bdi in this.audioPlayer.GetDevice())
+                //{
+                //    string dname = "";
+                //    if (bdi.IsDefault) dname = "*";
+                //    dname += bdi.name;
+                //    comboBoxDevice.Items.Add(dname);
+                //    comboBoxDevice.SelectedItem = dname;
+                //}
             }
             catch (Exception e)
             {

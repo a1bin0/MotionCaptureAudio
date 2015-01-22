@@ -12,12 +12,12 @@ namespace MotionCaptureAudio
         private DepthGenerator depth;
         private Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>> histryData = new Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>>();
         private readonly int positionMaxCount = 5;
-        private readonly double margin = 20.0;
 
         public event EventHandler LeftHandUpDetected;
         public event EventHandler LeftHandDownDetected;
-        public event EventHandler LeftHandSwipeLeftDetected;
-        public event EventHandler LeftHandOverHeadDetected;
+        public event EventHandler RightHandUpDetected;
+        public event EventHandler RightHandDownDetected;
+        public event EventHandler IdleDetected;
 
         /// <summary>
         /// コンストラクタ
@@ -32,23 +32,27 @@ namespace MotionCaptureAudio
             saveHistory(userID, skeleton);
             List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions = this.histryData[userID];
 
-            if (positions.Count == this.positionMaxCount)
+            if (positions.Count >= this.positionMaxCount)
             {
-                if (this.detectLeftHandSwipeUp(positions) && (positions.All(item => this.isLeftPosition(item))))
+                if (positions.All(item => this.isLeftUp(positions)))
                 {
                     this.LeftHandUpDetected(this, EventArgs.Empty);
                 }
-                else if (this.detectLeftHandDown(positions) && (positions.All(item => this.isLeftPosition(item))))
+                else if (positions.All(item => this.isLeftDown(positions)))
                 {
                     this.LeftHandDownDetected(this, EventArgs.Empty);
                 }
-                else if (this.detectLeftHandSwipeLeft(positions) && (positions.All(item => this.isLeftPosition(item))))
+                else if (positions.All(item => this.isRightUp(positions)))
                 {
-                    this.LeftHandSwipeLeftDetected(this, EventArgs.Empty);
+                    this.RightHandUpDetected(this, EventArgs.Empty);
                 }
-                else if (this.detectLeftHandOverHead(positions) && (positions.All(item => this.isBetweenPosition(item))))
+                else if (positions.All(item => this.isRightDown(positions)))
                 {
-                    this.LeftHandOverHeadDetected(this, EventArgs.Empty);
+                    this.RightHandDownDetected(this, EventArgs.Empty);
+                }
+                else
+                {
+                    this.IdleDetected(this, EventArgs.Empty);
                 }
             }
         }
@@ -68,101 +72,77 @@ namespace MotionCaptureAudio
         }
 
         /// <summary>
-        /// 左手が頭上にあるか
+        /// 左手が左肩より左上にあるか
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="skeleton"></param>
         /// <returns></returns>
-        private bool detectLeftHandOverHead(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
+        private bool isLeftUp(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
         {
             for (int i = 0; i < this.positionMaxCount; i++)
             {
-                Point3D handData = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
-                Point3D headData = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.Head].Position);
-                if (handData.Y > headData.Y) return false;
+                Point3D leftHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
+                Point3D leftShoulder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftShoulder].Position);
+
+                if (leftHand.X > leftShoulder.X || leftHand.Y > leftShoulder.Y) return false;
             }
 
             return true;
         }
 
         /// <summary>
-        /// 左手が左に移動したか
+        /// 左手が腰より左下にあるか
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="skeleton"></param>
         /// <returns></returns>
-        private bool detectLeftHandSwipeLeft(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
+        private bool isLeftDown(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
         {
-            for (int i = 0; i < this.positionMaxCount - 1; i++)
+            for (int i = 0; i < this.positionMaxCount; i++)
             {
-                Point3D oldData = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
-                Point3D newData = depth.ConvertRealWorldToProjective(positions[i + 1][SkeletonJoint.LeftHand].Position);
-                if (oldData.X < newData.X) return false;
+                Point3D leftHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
+                Point3D leftShoulder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftShoulder].Position);
+                Point3D waist = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.Waist].Position);
+
+                  if (leftHand.X > leftShoulder.X || leftHand.Y < waist.Y) return false;
             }
 
-            return (depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftHand].Position).X - margin <
-                    depth.ConvertRealWorldToProjective(positions[this.positionMaxCount - 1][SkeletonJoint.LeftHand].Position).X);
+            return true;
         }
 
         /// <summary>
-        /// 左手が下がっているか
+        /// 右手が右肩より右上にあるか
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="skeleton"></param>
         /// <returns></returns>
-        private bool detectLeftHandDown(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
+        private bool isRightUp(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
         {
-            for (int i = 0; i < this.positionMaxCount - 1; i++)
+            for (int i = 0; i < this.positionMaxCount; i++)
             {
-                Point3D oldData = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
-                Point3D newData = depth.ConvertRealWorldToProjective(positions[i + 1][SkeletonJoint.LeftHand].Position);
-                if (oldData.Y > newData.Y) return false;
+                Point3D rightHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHand].Position);
+                Point3D rightShoulder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightShoulder].Position);
+
+                if (rightHand.X < rightShoulder.X || rightHand.Y > rightShoulder.Y) return false;
             }
 
-            return (depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftHand].Position).Y + margin >
-                    depth.ConvertRealWorldToProjective(positions[this.positionMaxCount - 1][SkeletonJoint.LeftHand].Position).Y);
+            return true;
         }
 
         /// <summary>
-        /// 左手が上がっているか
+        /// 右手が腰より右下にあるか
         /// </summary>
-        /// <param name="userID"></param>
         /// <param name="skeleton"></param>
         /// <returns></returns>
-        private bool detectLeftHandSwipeUp(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
+        private bool isRightDown(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
         {
-            for (int i = 0; i < this.positionMaxCount - 1; i++)
+            for (int i = 0; i < this.positionMaxCount; i++)
             {
-                Point3D oldData = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
-                Point3D newData = depth.ConvertRealWorldToProjective(positions[i + 1][SkeletonJoint.LeftHand].Position);
-                if (oldData.Y < newData.Y) return false;
+                Point3D rightHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHand].Position);
+                Point3D rightShoulder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightShoulder].Position);
+                Point3D waist = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.Waist].Position);
+
+                if (rightHand.X < rightShoulder.X || rightHand.Y < waist.Y) return false;
             }
 
-            return (depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftHand].Position).Y - margin <
-                    depth.ConvertRealWorldToProjective(positions[this.positionMaxCount - 1][SkeletonJoint.LeftHand].Position).Y);
-        }
-
-        /// <summary>
-        /// 左手が左肩より左にあるか
-        /// </summary>
-        /// <param name="skeleton"></param>
-        /// <returns></returns>
-        private bool isLeftPosition(Dictionary<SkeletonJoint, SkeletonJointPosition> skeleton)
-        {
-            return (depth.ConvertRealWorldToProjective(skeleton[SkeletonJoint.LeftHand].Position).X <
-                    depth.ConvertRealWorldToProjective(skeleton[SkeletonJoint.LeftShoulder].Position).X);
-        }
-
-        /// <summary>
-        /// 左手が両肩の間にあるか
-        /// </summary>
-        /// <param name="skeleton"></param>
-        /// <returns></returns>
-        private bool isBetweenPosition(Dictionary<SkeletonJoint, SkeletonJointPosition> skeleton)
-        {
-            return (!this.isLeftPosition(skeleton) &&
-                    depth.ConvertRealWorldToProjective(skeleton[SkeletonJoint.LeftHand].Position).X <
-                    depth.ConvertRealWorldToProjective(skeleton[SkeletonJoint.RightShoulder].Position).X);
+            return true;
         }
     }
 }

@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using OpenNI;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Reflection;
 
 namespace MotionCaptureAudio
 {
@@ -21,30 +22,28 @@ namespace MotionCaptureAudio
         private UserGenerator user;
         private Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
         private MotionDetector motionDetector;
-        private Dictionary<ActionId, DateTime> timeStamp = new Dictionary<ActionId, DateTime>();
         private MotionCaptureAudio.Player player;
+
+        private CommandState currentState = CommandState.none;
 
         private Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>> joints = new Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>();
 
         private List<Panel> statusPanels = new List<Panel>();
 
-        #endregion instance fields
-
         /// <summary>
-        /// モーションのパターンです
+        /// ステートです
         /// </summary>
-        enum ActionId
+        enum CommandState
         {
-            down,
-            up,
-            overHead,
-            left,
+            none,
+            play,
+            pause,
+            volumeUp,
+            volumeDown,
         }
 
-        /// <summary>
-        /// 同モーションを無視する時間(sec)です
-        /// /// </summary>
-        static readonly int interval = 2;
+        #endregion instance fields
+
 
         #region constructors
 
@@ -69,14 +68,6 @@ namespace MotionCaptureAudio
             this.user.SkeletonCapability.CalibrationComplete += this.SkeletonCapability_CalibrationComplete;
             this.user.SkeletonCapability.SetSkeletonProfile(SkeletonProfile.All);
 
-            DateTime now = DateTime.Now.AddSeconds(-interval);
-
-            //全モーションのタイムスタンプに現在時刻を設定します
-            foreach (ActionId id in Enum.GetValues(typeof(ActionId)))
-            {
-                timeStamp[id] = now;
-            }
-
             this.context.StartGeneratingAll();
             this.player = new Player();
         }
@@ -97,55 +88,61 @@ namespace MotionCaptureAudio
             this.motionDetector = new MotionDetector(this.depth);
             this.motionDetector.LeftHandDownDetected += this.leftHandDownDetected;
             this.motionDetector.LeftHandUpDetected += this.leftHandUpDetected;
-            this.motionDetector.LeftHandSwipeLeftDetected += this.leftHandSwipeLeftDetected;
-            this.motionDetector.LeftHandOverHeadDetected += this.leftHandOverHeadDetected;
+            this.motionDetector.RightHandUpDetected += this.rightHandUpDetected;
+            this.motionDetector.RightHandDownDetected += this.rightHandDownDetected;
+            this.motionDetector.IdleDetected += this.idleDetected;
         }
 
         private void leftHandDownDetected(object sender, EventArgs e)
         {
-            if (this.player.CanPlay)
+            //if (this.player.CanPlay && this.currentState != CommandState.volumeDown)
+            if (this.currentState != CommandState.volumeDown)
             {
-                if (DateTime.Now.Subtract(timeStamp[ActionId.up]).Seconds > interval)
-                {
-                    timeStamp[ActionId.down] = DateTime.Now;
-                    this.player.VolumeDown();
-                }
+                //this.playerController.VolumeDown();
+                this.currentState = CommandState.volumeDown;
+                Console.WriteLine(MethodBase.GetCurrentMethod().Name);
             }
         }
 
         private void leftHandUpDetected(object sender, EventArgs e)
         {
-            if (this.player.CanPlay)
+            //if (this.player.CanPlay && this.currentState != CommandState.volumeUp)
+            if (this.currentState != CommandState.volumeUp)
             {
-                if (DateTime.Now.Subtract(timeStamp[ActionId.up]).Seconds > interval)
-                {
-                    timeStamp[ActionId.up] = DateTime.Now;
-                    this.player.VolumeUp();
-                }
+                //this.playerController.VolumeUp();
+                this.currentState = CommandState.volumeUp;
+                Console.WriteLine(MethodBase.GetCurrentMethod().Name);
             }
         }
 
-        private void leftHandSwipeLeftDetected(object sender, EventArgs e)
+        private void rightHandUpDetected(object sender, EventArgs e)
         {
-            if (this.player.CanPlay)
+            //if (this.player.CanPlay && this.currentState != CommandState.play)
+            if (this.currentState != CommandState.play)
             {
-                if (DateTime.Now.Subtract(timeStamp[ActionId.left]).Seconds > interval)
-                {
-                    timeStamp[ActionId.left] = DateTime.Now;
-                    this.player.Pause();
-                }
+                //this.playerController.Play();
+                this.currentState = CommandState.play;
+                Console.WriteLine(MethodBase.GetCurrentMethod().Name);
             }
         }
 
-        private void leftHandOverHeadDetected(object sender, EventArgs e)
+        private void rightHandDownDetected(object sender, EventArgs e)
         {
-            if (this.player.CanPlay)
+            //if (this.player.CanPlay && this.currentState != CommandState.pause)
+            if (this.currentState != CommandState.pause)
             {
-                if (DateTime.Now.Subtract(timeStamp[ActionId.overHead]).Seconds > interval)
-                {
-                    timeStamp[ActionId.overHead] = DateTime.Now;
-                    this.player.Play();
-                }
+                //this.playerController.Pause();
+                this.currentState = CommandState.pause;
+                Console.WriteLine(MethodBase.GetCurrentMethod().Name);
+            }
+        }
+
+        private void idleDetected(object sender, EventArgs e)
+        {
+            if (this.currentState != CommandState.none)
+            {
+                this.currentState = CommandState.none;
+                Console.WriteLine(MethodBase.GetCurrentMethod().Name);
             }
         }
 
