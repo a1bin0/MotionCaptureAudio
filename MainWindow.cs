@@ -6,7 +6,6 @@ using System.Windows.Threading;
 using OpenNI;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Reflection;
 
 namespace MotionCaptureAudio
 {
@@ -100,7 +99,7 @@ namespace MotionCaptureAudio
             {
                 //this.playerController.VolumeDown();
                 this.currentState = CommandState.volumeDown;
-                Console.WriteLine(MethodBase.GetCurrentMethod().Name);
+                Console.WriteLine("左手が下がってる");
             }
         }
 
@@ -111,7 +110,7 @@ namespace MotionCaptureAudio
             {
                 //this.playerController.VolumeUp();
                 this.currentState = CommandState.volumeUp;
-                Console.WriteLine(MethodBase.GetCurrentMethod().Name);
+                Console.WriteLine("左手が上がってる");
             }
         }
 
@@ -122,7 +121,7 @@ namespace MotionCaptureAudio
             {
                 //this.playerController.Play();
                 this.currentState = CommandState.play;
-                Console.WriteLine(MethodBase.GetCurrentMethod().Name);
+                Console.WriteLine("右手が上がってる");
             }
         }
 
@@ -133,7 +132,7 @@ namespace MotionCaptureAudio
             {
                 //this.playerController.Pause();
                 this.currentState = CommandState.pause;
-                Console.WriteLine(MethodBase.GetCurrentMethod().Name);
+                Console.WriteLine("右手が下がってる");
             }
         }
 
@@ -142,7 +141,7 @@ namespace MotionCaptureAudio
             if (this.currentState != CommandState.none)
             {
                 this.currentState = CommandState.none;
-                Console.WriteLine(MethodBase.GetCurrentMethod().Name);
+                Console.WriteLine("待ち");
             }
         }
 

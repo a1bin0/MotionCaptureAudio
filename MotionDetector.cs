@@ -11,7 +11,8 @@ namespace MotionCaptureAudio
     {
         private DepthGenerator depth;
         private Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>> histryData = new Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>>();
-        private readonly int positionMaxCount = 5;
+        private readonly int positionMaxCount = 10;
+        private readonly double confidenceBase = 0.9;
 
         public event EventHandler LeftHandUpDetected;
         public event EventHandler LeftHandDownDetected;
@@ -72,7 +73,7 @@ namespace MotionCaptureAudio
         }
 
         /// <summary>
-        /// 左手が左肩より左上にあるか
+        /// 左手が頭上にあるか
         /// </summary>
         /// <param name="skeleton"></param>
         /// <returns></returns>
@@ -80,17 +81,22 @@ namespace MotionCaptureAudio
         {
             for (int i = 0; i < this.positionMaxCount; i++)
             {
-                Point3D leftHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
-                Point3D leftShoulder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftShoulder].Position);
+                if (positions[i][SkeletonJoint.LeftHand].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.Head].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.LeftHand].Position.Y == null) return false;
+                if (positions[i][SkeletonJoint.Head].Position.Y == null) return false;
 
-                if (leftHand.X > leftShoulder.X || leftHand.Y > leftShoulder.Y) return false;
+                Point3D leftHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
+                Point3D head = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.Head].Position);
+
+                if (leftHand.Y > head.Y) return false;
             }
 
             return true;
         }
 
         /// <summary>
-        /// 左手が腰より左下にあるか
+        /// 左手が腰より下にあるか
         /// </summary>
         /// <param name="skeleton"></param>
         /// <returns></returns>
@@ -98,18 +104,22 @@ namespace MotionCaptureAudio
         {
             for (int i = 0; i < this.positionMaxCount; i++)
             {
-                Point3D leftHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
-                Point3D leftShoulder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftShoulder].Position);
-                Point3D waist = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.Waist].Position);
+                if (positions[i][SkeletonJoint.LeftHand].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.LeftHip].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.LeftHand].Position.Y == null) return false;
+                if (positions[i][SkeletonJoint.LeftHip].Position.Y == null) return false;
 
-                  if (leftHand.X > leftShoulder.X || leftHand.Y < waist.Y) return false;
+                Point3D leftHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
+                Point3D leftHip = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHip].Position);
+
+                  if (leftHand.Y < leftHip.Y) return false;
             }
 
             return true;
         }
 
         /// <summary>
-        /// 右手が右肩より右上にあるか
+        /// 右手が頭上にあるか
         /// </summary>
         /// <param name="skeleton"></param>
         /// <returns></returns>
@@ -117,17 +127,22 @@ namespace MotionCaptureAudio
         {
             for (int i = 0; i < this.positionMaxCount; i++)
             {
-                Point3D rightHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHand].Position);
-                Point3D rightShoulder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightShoulder].Position);
+                if (positions[i][SkeletonJoint.RightHand].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.Head].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.RightHand].Position.Y == null) return false;
+                if (positions[i][SkeletonJoint.Head].Position.Y == null) return false;
 
-                if (rightHand.X < rightShoulder.X || rightHand.Y > rightShoulder.Y) return false;
+                Point3D rightHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHand].Position);
+                Point3D head = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.Head].Position);
+
+                if (rightHand.Y > head.Y) return false;
             }
 
             return true;
         }
 
         /// <summary>
-        /// 右手が腰より右下にあるか
+        /// 右手が腰より下にあるか
         /// </summary>
         /// <param name="skeleton"></param>
         /// <returns></returns>
@@ -135,11 +150,15 @@ namespace MotionCaptureAudio
         {
             for (int i = 0; i < this.positionMaxCount; i++)
             {
-                Point3D rightHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHand].Position);
-                Point3D rightShoulder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightShoulder].Position);
-                Point3D waist = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.Waist].Position);
+                if (positions[i][SkeletonJoint.RightHand].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.RightHip].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.RightHand].Position.Y == null) return false;
+                if (positions[i][SkeletonJoint.RightHip].Position.Y == null) return false;
 
-                if (rightHand.X < rightShoulder.X || rightHand.Y < waist.Y) return false;
+                Point3D rightHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHand].Position);
+                Point3D rightHip = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHip].Position);
+
+                if (rightHand.Y < rightHip.Y) return false;
             }
 
             return true;
