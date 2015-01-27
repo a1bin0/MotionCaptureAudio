@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-//using Un4seen.Bass;
+using Un4seen.Bass;
 
 namespace MotionCaptureAudio.Controller
 {
@@ -22,17 +22,17 @@ namespace MotionCaptureAudio.Controller
             this.PlayState = PlayState.Stopped;
         }
 
-        //public BASS_DEVICEINFO[] GetDevice()
-        //{
-        //    try
-        //    {
-        //        return Bass.BASS_GetDeviceInfos();
-        //    }
-        //    catch
-        //    {
-        //        throw;
-        //    }
-        //}
+        public BASS_DEVICEINFO[] GetDevice()
+        {
+            try
+            {
+                return Bass.BASS_GetDeviceInfos();
+            }
+            catch
+            {
+                throw;
+            }
+        }
 
         /// <summary>
         /// インスタンスを初期化します。
@@ -61,14 +61,14 @@ namespace MotionCaptureAudio.Controller
 
             if (this._handle == 0)
             {
-                //var error = Bass.BASS_ErrorGetCode();
-                //throw new Exception("ストリームの生成に失敗しました。\nError : " + error.ToString());
+                var error = Bass.BASS_ErrorGetCode();
+                throw new Exception("ストリームの生成に失敗しました。\nError : " + error.ToString());
             }
 
             // 演奏時間の算出
-            //long length = Bass.BASS_ChannelGetLength(this._handle);
-            //double seconds = Bass.BASS_ChannelBytes2Seconds(this._handle, length);
-           // this.Duration = TimeSpan.FromSeconds(seconds);
+            long length = Bass.BASS_ChannelGetLength(this._handle);
+            double seconds = Bass.BASS_ChannelBytes2Seconds(this._handle, length);
+            this.Duration = TimeSpan.FromSeconds(seconds);
             this.PlayState = PlayState.Stopped;
             return Result.OK;
         }
@@ -81,9 +81,9 @@ namespace MotionCaptureAudio.Controller
         public static void BassFree()
         {
             if (!AudioPlayer.IsBassInitialized) { return; }
-            //Bass.BASS_Stop();
-            //Bass.BASS_PluginFree(0);
-            //Bass.FreeMe();
+            Bass.BASS_Stop();
+            Bass.BASS_PluginFree(0);
+            Bass.FreeMe();
             AudioPlayer.IsBassInitialized = false;
         }
 
@@ -96,24 +96,24 @@ namespace MotionCaptureAudio.Controller
         {
             if (AudioPlayer.IsBassInitialized) { return; }
 
-            // Bass.Net
-            //if (!Bass.LoadMe(folderPath))
+             //Bass.Net
+            if (!Bass.LoadMe(folderPath))
             {
                 throw new Exception("Bass.Net の初期化に失敗しました。");
             }
 
             // デバイス
-            //if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
-            //{
-            //    var error = Bass.BASS_ErrorGetCode();
-            //    throw new Exception("デバイスの初期化に失敗しました。\nError : " + error.ToString());
-            //}
+            if (!Bass.BASS_Init(-1, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero))
+            {
+                var error = Bass.BASS_ErrorGetCode();
+                throw new Exception("デバイスの初期化に失敗しました。\nError : " + error.ToString());
+            }
 
-            // プラグイン
-            //{
-            //    var plugins = Bass.BASS_PluginLoadDirectory(folderPath);
-            //    AudioPlayer.FileFilter = Utils.BASSAddOnGetPluginFileFilter(plugins, null);
-            //}
+             //プラグイン
+            {
+                var plugins = Bass.BASS_PluginLoadDirectory(folderPath);
+                AudioPlayer.FileFilter = Utils.BASSAddOnGetPluginFileFilter(plugins, null);
+            }
 
             AudioPlayer.IsBassInitialized = true;
         }
@@ -138,7 +138,7 @@ namespace MotionCaptureAudio.Controller
             if (this.PlayState == PlayState.Playing)
             {
                 this.PlayState = PlayState.Paused;
-                //Bass.BASS_ChannelPause(this._handle);
+                Bass.BASS_ChannelPause(this._handle);
             }
         }
 
@@ -151,7 +151,7 @@ namespace MotionCaptureAudio.Controller
             {
                 var restart = this.PlayState != PlayState.Paused;
                 this.PlayState = PlayState.Playing;
-                //Bass.BASS_ChannelPlay(this._handle, restart);
+                Bass.BASS_ChannelPlay(this._handle, restart);
             }
         }
 
@@ -163,8 +163,8 @@ namespace MotionCaptureAudio.Controller
             if (this.PlayState != PlayState.Stopped)
             {
                 this.PlayState = PlayState.Stopped;
-               // Bass.BASS_ChannelStop(this._handle);
-               // Bass.BASS_ChannelSetPosition(this._handle, 0.0);
+                Bass.BASS_ChannelStop(this._handle);
+                Bass.BASS_ChannelSetPosition(this._handle, 0.0);
             }
         }
 
@@ -180,14 +180,13 @@ namespace MotionCaptureAudio.Controller
         {
             get
             {
-                //var position = Bass.BASS_ChannelGetPosition(this._handle);
-                //return TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(this._handle, position));
-                return TimeSpan.Zero;//後で消す
+                var position = Bass.BASS_ChannelGetPosition(this._handle);
+                return TimeSpan.FromSeconds(Bass.BASS_ChannelBytes2Seconds(this._handle, position));
             }
             set
             {
-                //var position = Bass.BASS_ChannelSeconds2Bytes(this._handle, value.TotalSeconds);
-                //Bass.BASS_ChannelSetPosition(this._handle, position);
+                var position = Bass.BASS_ChannelSeconds2Bytes(this._handle, value.TotalSeconds);
+                Bass.BASS_ChannelSetPosition(this._handle, position);
             }
         }
 
@@ -223,8 +222,8 @@ namespace MotionCaptureAudio.Controller
             }
             set
             {
-                //this._volume = value;
-              //  Bass.BASS_ChannelSetAttribute(this._handle, BASSAttribute.BASS_ATTRIB_VOL, value);
+                this._volume = value;
+                Bass.BASS_ChannelSetAttribute(this._handle, BASSAttribute.BASS_ATTRIB_VOL, value);
             }
         }
 
@@ -240,7 +239,7 @@ namespace MotionCaptureAudio.Controller
             if (this._handle != 0)
             {
                 this.Stop();
-                //Bass.BASS_StreamFree(this._handle);
+                Bass.BASS_StreamFree(this._handle);
                 this._handle = 0;
             }
         }
@@ -279,15 +278,15 @@ namespace MotionCaptureAudio.Controller
         {
             if (this._device == deviceIndex) return;
             this._device = deviceIndex;
-            //Bass.BASS_SetDevice(this._device);
-            //Bass.BASS_Init(this._device, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero);
+            Bass.BASS_SetDevice(this._device);
+            Bass.BASS_Init(this._device, 44100, BASSInit.BASS_DEVICE_DEFAULT, IntPtr.Zero);
         }
 
         private void createStream(string fileName)
         {
             if (this._fileName == fileName) return;
             this._fileName = fileName;
-            //this._handle = Bass.BASS_StreamCreateFile(this._fileName, 0L, 0L, BASSFlag.BASS_DEFAULT);
+            this._handle = Bass.BASS_StreamCreateFile(this._fileName, 0L, 0L, BASSFlag.BASS_DEFAULT);
         }
     }
 }

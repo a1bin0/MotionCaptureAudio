@@ -42,12 +42,12 @@
             // 
             this.buttonPlayPause.BackColor = System.Drawing.Color.Black;
             this.buttonPlayPause.Enabled = false;
-            this.buttonPlayPause.Font = new System.Drawing.Font("MS UI Gothic", 18F);
-            this.buttonPlayPause.Location = new System.Drawing.Point(6, 32);
+            this.buttonPlayPause.Font = new System.Drawing.Font("MS UI Gothic", 48F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.buttonPlayPause.Location = new System.Drawing.Point(6, 43);
             this.buttonPlayPause.Name = "buttonPlayPause";
-            this.buttonPlayPause.Size = new System.Drawing.Size(160, 34);
+            this.buttonPlayPause.Size = new System.Drawing.Size(414, 100);
             this.buttonPlayPause.TabIndex = 11;
-            this.buttonPlayPause.Text = "Play";
+            this.buttonPlayPause.Text = "停止中";
             this.buttonPlayPause.UseVisualStyleBackColor = false;
             this.buttonPlayPause.Click += new System.EventHandler(this.buttonPlayPause_Click);
             // 
@@ -55,9 +55,9 @@
             // 
             this.buttonSelect.BackColor = System.Drawing.Color.Black;
             this.buttonSelect.Font = new System.Drawing.Font("MS UI Gothic", 18F);
-            this.buttonSelect.Location = new System.Drawing.Point(6, 72);
+            this.buttonSelect.Location = new System.Drawing.Point(6, 149);
             this.buttonSelect.Name = "buttonSelect";
-            this.buttonSelect.Size = new System.Drawing.Size(160, 33);
+            this.buttonSelect.Size = new System.Drawing.Size(414, 77);
             this.buttonSelect.TabIndex = 13;
             this.buttonSelect.Text = "Select";
             this.buttonSelect.UseVisualStyleBackColor = false;
@@ -82,7 +82,7 @@
             // trackBarVolume
             // 
             this.trackBarVolume.BackColor = System.Drawing.Color.Black;
-            this.trackBarVolume.Location = new System.Drawing.Point(172, 6);
+            this.trackBarVolume.Location = new System.Drawing.Point(530, 6);
             this.trackBarVolume.Name = "trackBarVolume";
             this.trackBarVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
             this.trackBarVolume.Size = new System.Drawing.Size(45, 254);
@@ -100,7 +100,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(229, 266);
+            this.ClientSize = new System.Drawing.Size(597, 260);
             this.ControlBox = false;
             this.Controls.Add(this.trackBarVolume);
             this.Controls.Add(this.comboBoxDevice);

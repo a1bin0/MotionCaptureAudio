@@ -35,14 +35,12 @@ namespace MotionCaptureAudio
         enum CommandState
         {
             none,
-            play,
-            pause,
+            change,
             volumeUp,
             volumeDown,
         }
 
         #endregion instance fields
-
 
         #region constructors
 
@@ -85,6 +83,7 @@ namespace MotionCaptureAudio
         private void setupMotiondetector()
         {
             this.motionDetector = new MotionDetector(this.depth);
+            this.motionDetector.BothHandUpDetected += this.bothHandUpDetected;
             this.motionDetector.LeftHandDownDetected += this.leftHandDownDetected;
             this.motionDetector.LeftHandUpDetected += this.leftHandUpDetected;
             this.motionDetector.RightHandUpDetected += this.rightHandUpDetected;
@@ -94,45 +93,44 @@ namespace MotionCaptureAudio
 
         private void leftHandDownDetected(object sender, EventArgs e)
         {
-            //if (this.player.CanPlay && this.currentState != CommandState.volumeDown)
-            if (this.currentState != CommandState.volumeDown)
+            if (this.player.CanPlay && this.currentState != CommandState.volumeDown)
             {
-                //this.playerController.VolumeDown();
+                this.player.VolumeDown();
                 this.currentState = CommandState.volumeDown;
-                Console.WriteLine("左手が下がってる");
             }
+        }
+
+        private void bothHandUpDetected(object sender, EventArgs e)
+        {
+            this.player.Dispose();
+            this.Close();
         }
 
         private void leftHandUpDetected(object sender, EventArgs e)
         {
-            //if (this.player.CanPlay && this.currentState != CommandState.volumeUp)
-            if (this.currentState != CommandState.volumeUp)
+            if (this.player.CanPlay && this.currentState != CommandState.volumeUp)
             {
-                //this.playerController.VolumeUp();
+                this.player.VolumeUp();
                 this.currentState = CommandState.volumeUp;
-                Console.WriteLine("左手が上がってる");
             }
         }
 
         private void rightHandUpDetected(object sender, EventArgs e)
         {
-            //if (this.player.CanPlay && this.currentState != CommandState.play)
-            if (this.currentState != CommandState.play)
+            if (this.player.CanPlay && this.currentState != CommandState.change)
             {
-                //this.playerController.Play();
-                this.currentState = CommandState.play;
-                Console.WriteLine("右手が上がってる");
+                this.player.PlayPauseChange();
+                this.currentState = CommandState.change;
             }
         }
 
         private void rightHandDownDetected(object sender, EventArgs e)
         {
-            //if (this.player.CanPlay && this.currentState != CommandState.pause)
-            if (this.currentState != CommandState.pause)
+            if (this.player.CanPlay && this.currentState != CommandState.none)
             {
-                //this.playerController.Pause();
-                this.currentState = CommandState.pause;
-                Console.WriteLine("右手が下がってる");
+                //this.player.Pause();
+                this.currentState = CommandState.none;
+                Console.WriteLine("プレーヤー切り替え用に右下を温存");
             }
         }
 
@@ -141,7 +139,7 @@ namespace MotionCaptureAudio
             if (this.currentState != CommandState.none)
             {
                 this.currentState = CommandState.none;
-                Console.WriteLine("待ち");
+                Console.WriteLine("この姿勢ではコマンドが飛ばない");
             }
         }
 

@@ -18,6 +18,7 @@ namespace MotionCaptureAudio
         public event EventHandler LeftHandDownDetected;
         public event EventHandler RightHandUpDetected;
         public event EventHandler RightHandDownDetected;
+        public event EventHandler BothHandUpDetected;
         public event EventHandler IdleDetected;
 
         /// <summary>
@@ -35,17 +36,21 @@ namespace MotionCaptureAudio
 
             if (positions.Count >= this.positionMaxCount)
             {
-                if (positions.All(item => this.isLeftUp(positions)))
+                if (positions.All(item => this.isRightUp(positions)) && positions.All(item => this.isLeftUp(positions)))
+                {
+                    this.BothHandUpDetected(this, EventArgs.Empty);
+                }
+                if (positions.All(item => this.isRightUp(positions)))
+                {
+                    this.RightHandUpDetected(this, EventArgs.Empty);
+                }
+                else if (positions.All(item => this.isLeftUp(positions)))
                 {
                     this.LeftHandUpDetected(this, EventArgs.Empty);
                 }
                 else if (positions.All(item => this.isLeftDown(positions)))
                 {
                     this.LeftHandDownDetected(this, EventArgs.Empty);
-                }
-                else if (positions.All(item => this.isRightUp(positions)))
-                {
-                    this.RightHandUpDetected(this, EventArgs.Empty);
                 }
                 else if (positions.All(item => this.isRightDown(positions)))
                 {

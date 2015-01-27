@@ -33,14 +33,14 @@ namespace MotionCaptureAudio
         {
             try
             {
-                //foreach (var bdi in this.audioPlayer.GetDevice())
-                //{
-                //    string dname = "";
-                //    if (bdi.IsDefault) dname = "*";
-                //    dname += bdi.name;
-                //    comboBoxDevice.Items.Add(dname);
-                //    comboBoxDevice.SelectedItem = dname;
-                //}
+                foreach (var bdi in this.audioPlayer.GetDevice())
+                {
+                    string dname = "";
+                    if (bdi.IsDefault) dname = "*";
+                    dname += bdi.name;
+                    comboBoxDevice.Items.Add(dname);
+                    comboBoxDevice.SelectedItem = dname;
+                }
             }
             catch (Exception e)
             {
@@ -91,8 +91,8 @@ namespace MotionCaptureAudio
                 return;
             }
 
-            this.buttonPlayPause.Text = "Pause";
-            this.buttonSelect.Text = "Reset";
+            this.buttonPlayPause.Text = "再生中";
+            this.buttonSelect.Text = "リセット";
             this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
             this.timer.Start();
             this.audioPlayer.Play();
@@ -106,9 +106,21 @@ namespace MotionCaptureAudio
                 return;
             }
 
-            this.buttonPlayPause.Text = "Play";
+            this.buttonPlayPause.Text = "停止中";
             this.audioPlayer.Pause();
             this.timer.Stop();
+        }
+
+        public void PlayPauseChange()
+        {
+            if (this.audioPlayer.PlayState == PlayState.Playing)
+            {
+                this.Pause();
+            }
+            else
+            {
+                this.Play();
+            }
         }
 
         public void VolumeUp()
@@ -129,7 +141,7 @@ namespace MotionCaptureAudio
 
         public void VolumeDown()
         {
-            if ((this.audioPlayer.Volume == 0 ) || (this.trackBarVolume.Value == 0)) return;
+            if ((this.audioPlayer.Volume == 0) || (this.trackBarVolume.Value == 0)) return;
             if (this.InvokeRequired)
             {
                 this.Invoke(new Action(this.VolumeDown));
@@ -160,14 +172,7 @@ namespace MotionCaptureAudio
 
         private void buttonPlayPause_Click(object sender, EventArgs e)
         {
-            if (buttonPlayPause.Text == "Play")
-            {
-                this.Play();
-            }
-            else
-            {
-                this.Pause();
-            }
+            this.PlayPauseChange();
         }
     }
 }
