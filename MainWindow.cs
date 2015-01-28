@@ -102,6 +102,15 @@ namespace MotionCaptureAudio
 
         private void bothHandUpDetected(object sender, EventArgs e)
         {
+            this.shouldRun = false;
+
+            if(this.readerThread != null)
+            {
+                this.readerThread.Abort();
+                this.readerThread.Join();
+            }
+
+            this.player.Pause();
             this.player.Dispose();
             this.Close();
         }
@@ -167,8 +176,6 @@ namespace MotionCaptureAudio
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            this.shouldRun = false;
-            this.readerThread.Join();
             base.OnClosing(e);
         }
 

@@ -12,7 +12,7 @@ namespace MotionCaptureAudio
         private DepthGenerator depth;
         private Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>> histryData = new Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>>();
         private readonly int positionMaxCount = 10;
-        private readonly double confidenceBase = 0.9;
+        private readonly double confidenceBase = 0.95;
 
         public event EventHandler LeftHandUpDetected;
         public event EventHandler LeftHandDownDetected;
@@ -88,8 +88,6 @@ namespace MotionCaptureAudio
             {
                 if (positions[i][SkeletonJoint.LeftHand].Confidence < this.confidenceBase) return false;
                 if (positions[i][SkeletonJoint.Head].Confidence < this.confidenceBase) return false;
-                if (positions[i][SkeletonJoint.LeftHand].Position.Y == null) return false;
-                if (positions[i][SkeletonJoint.Head].Position.Y == null) return false;
 
                 Point3D leftHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
                 Point3D head = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.Head].Position);
@@ -111,8 +109,6 @@ namespace MotionCaptureAudio
             {
                 if (positions[i][SkeletonJoint.LeftHand].Confidence < this.confidenceBase) return false;
                 if (positions[i][SkeletonJoint.LeftHip].Confidence < this.confidenceBase) return false;
-                if (positions[i][SkeletonJoint.LeftHand].Position.Y == null) return false;
-                if (positions[i][SkeletonJoint.LeftHip].Position.Y == null) return false;
 
                 Point3D leftHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
                 Point3D leftHip = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHip].Position);
@@ -134,8 +130,6 @@ namespace MotionCaptureAudio
             {
                 if (positions[i][SkeletonJoint.RightHand].Confidence < this.confidenceBase) return false;
                 if (positions[i][SkeletonJoint.Head].Confidence < this.confidenceBase) return false;
-                if (positions[i][SkeletonJoint.RightHand].Position.Y == null) return false;
-                if (positions[i][SkeletonJoint.Head].Position.Y == null) return false;
 
                 Point3D rightHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHand].Position);
                 Point3D head = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.Head].Position);
@@ -157,8 +151,6 @@ namespace MotionCaptureAudio
             {
                 if (positions[i][SkeletonJoint.RightHand].Confidence < this.confidenceBase) return false;
                 if (positions[i][SkeletonJoint.RightHip].Confidence < this.confidenceBase) return false;
-                if (positions[i][SkeletonJoint.RightHand].Position.Y == null) return false;
-                if (positions[i][SkeletonJoint.RightHip].Position.Y == null) return false;
 
                 Point3D rightHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHand].Position);
                 Point3D rightHip = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHip].Position);
