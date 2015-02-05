@@ -16,7 +16,7 @@ namespace MotionCaptureAudio
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Player());
+            //Application.Run(new Player());
         }
     }
 }

@@ -1,7 +1,9 @@
 ﻿using MotionCaptureAudio.Controller;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace MotionCaptureAudio
 {
@@ -11,17 +13,55 @@ namespace MotionCaptureAudio
         NG,
     }
 
-    public partial class Player : Form
+    public partial class Player : UserControl
     {
-        public bool CanPlay;
+        // mm add start
+        private bool canplay;
+        // mm add end
+        public bool CanPlay
+        {
+            get
+            {
+                return this.canplay;
+            }
+            set
+            {
+                this.canplay = value;
+            }
+        }
+
+        private List<PlayingStatusControl> playingStatusControls = new List<PlayingStatusControl>();
+        private List<Timer> timers = new List<Timer>();
         private AudioPlayer audioPlayer;
 
         public Player()
         {
             InitializeComponent();
+            this.createplayingStatusControls();
             this.createAudioPlayer();
             this.initializeComboBox();
-            this.Show();
+            this.initializeTrackBar();
+
+            this.timers.Add(this.timer1);
+            this.timers.Add(this.timer2);
+            this.timers.Add(this.timer3);
+        }
+
+        private void createplayingStatusControls()
+        {
+            this.playingStatusControls.Add(this.playingStatusControl1);
+            this.playingStatusControls.Add(this.playingStatusControl2);
+            this.playingStatusControls.Add(this.playingStatusControl3);
+
+            var count = 1;
+            this.playingStatusControls.ForEach(e =>
+            {
+                e.User.Text = "user" + count.ToString();
+                count++;
+                e.PlayTime.Text = "00:00 / 00:00";
+                e.PictPlay.Visible = false;
+                e.PictPause.Visible = false;
+            });
         }
 
         private void createAudioPlayer()
@@ -35,14 +75,18 @@ namespace MotionCaptureAudio
             {
                 foreach (var bdi in this.audioPlayer.GetDevice())
                 {
-                    string dname = "";
-                    if (bdi.IsDefault) dname = "*";
+                    var dname = bdi.IsDefault ? "*" : string.Empty;
                     dname += bdi.name;
-                    comboBoxDevice.Items.Add(dname);
-                    comboBoxDevice.SelectedItem = dname;
+                    this.comboBoxDevice.Items.Add(dname);
+                    this.comboBoxDevice.SelectedItem = dname;
+                }
+
+                if (this.comboBoxDevice.Items.Count >= 1)
+                {
+                    this.comboBoxDevice.SelectedIndex = 1;
                 }
             }
-            catch (Exception e)
+            catch
             {
                 return;
             }
@@ -52,14 +96,21 @@ namespace MotionCaptureAudio
         {
             try
             {
-                var result = this.audioPlayer.InitializeInstance(this.comboBoxDevice.SelectedIndex, fileName);
-                return result;
+                return
+                    this.audioPlayer.InitializeInstance(
+                        this.comboBoxDevice.SelectedIndex,
+                        fileName);
             }
             catch (FileNotFoundException)
             {
                 MessageBox.Show("File not found.");
                 return Result.NG;
             }
+        }
+
+        private void initializeTrackBar()
+        {
+            this.trackBarVolume.Value = int.Parse((this.audioPlayer.Volume * 10).ToString());
         }
 
         private void buttonSelect_Click(object sender, EventArgs e)
@@ -70,7 +121,7 @@ namespace MotionCaptureAudio
                 return;
             }
 
-            this.openFileDialog.InitialDirectory = @"";
+            this.openFileDialog.InitialDirectory = string.Empty;
             this.openFileDialog.Filter = "MP3File(*.mp3)|*.mp3";
             var dialogResult = this.openFileDialog.ShowDialog();
 
@@ -78,48 +129,81 @@ namespace MotionCaptureAudio
             if (this.initializeInstance(this.openFileDialog.FileName) != Result.OK) return;
 
             this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
-            this.buttonPlayPause.Enabled = true;
             this.buttonSelect.Enabled = true;
             this.CanPlay = true;
+            Console.WriteLine("aaa" + this.CanPlay.GetHashCode().ToString());
         }
 
-        public void Play()
+        public void CalibrationCompleted(int userId)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(this.Play));
+                this.Invoke(new Action<int>(this.CalibrationCompleted), userId);
                 return;
             }
 
-            this.buttonPlayPause.Text = "再生中";
-            this.buttonSelect.Text = "リセット";
+            this.playingStatusControls[userId - 1].CalibrationCompleted();
+        }
+
+        public void DetectedUser(int userId)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action<int>(this.DetectedUser), userId);
+                return;
+            }
+
+            this.playingStatusControls[userId - 1].DetectedUser();
+        }
+
+        public void LostUser(int userId)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action<int>(this.LostUser), userId);
+                return;
+            }
+
+            this.playingStatusControls[userId - 1].LostUser();
+        }
+
+        public void Play(int userId)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action<int>(this.Play), userId);
+                return;
+            }
+
             this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
-            this.timer.Start();
+            this.playingStatusControls[userId - 1].Play();
+            this.startTimer(userId);
             this.audioPlayer.Play();
         }
 
-        public void Pause()
+        public void Pause(int userId)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action(this.Pause));
+                this.Invoke(new Action<int>(this.Pause), userId);
                 return;
             }
 
-            this.buttonPlayPause.Text = "停止中";
+            this.playingStatusControls[userId - 1].Pause();
             this.audioPlayer.Pause();
-            this.timer.Stop();
+
+            this.timers[userId - 1].Stop();
         }
 
-        public void PlayPauseChange()
+        public void PlayPauseChange(int userId)
         {
             if (this.audioPlayer.PlayState == PlayState.Playing)
             {
-                this.Pause();
+                this.Pause(userId);
             }
             else
             {
-                this.Play();
+                this.Play(userId);
             }
         }
 
@@ -141,7 +225,7 @@ namespace MotionCaptureAudio
 
         public void VolumeDown()
         {
-            if ((this.audioPlayer.Volume == 0) || (this.trackBarVolume.Value == 0)) return;
+            if ((this.audioPlayer.Volume == 0 ) || (this.trackBarVolume.Value == 0)) return;
             if (this.InvokeRequired)
             {
                 this.Invoke(new Action(this.VolumeDown));
@@ -155,24 +239,52 @@ namespace MotionCaptureAudio
             }
         }
 
+        public void UserChange(int userId, Color color)
+        {
+            this.playingStatusControls[userId - 1].Sign.BackColor = color;
+        }
+
         private void trackBarVolume_Scroll(object sender, EventArgs e)
         {
             this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
         }
 
+        private void startTimer(int userId)
+        {
+            this.timers[userId - 1].Start();
+        }
+
         private void timer_Tick(object sender, EventArgs e)
         {
-            this.Text = this.audioPlayer.CurrentTime.ToString(@"mm\:ss") + "/" + this.audioPlayer.Duration.ToString(@"mm\:ss");
+            this.playingStatusControls[0].PlayTime.Text
+                = this.audioPlayer.CurrentTime.ToString(@"mm\:ss")
+                + "/"
+                + this.audioPlayer.Duration.ToString(@"mm\:ss");
+        }
+
+        private void timer2_Tick(object sender, EventArgs e)
+        {
+            this.playingStatusControls[1].PlayTime.Text
+                = this.audioPlayer.CurrentTime.ToString(@"mm\:ss")
+                + "/"
+                + this.audioPlayer.Duration.ToString(@"mm\:ss");
+
+        }
+
+        private void timer3_Tick(object sender, EventArgs e)
+        {
+            this.playingStatusControls[2].PlayTime.Text
+                = this.audioPlayer.CurrentTime.ToString(@"mm\:ss")
+                + "/"
+                + this.audioPlayer.Duration.ToString(@"mm\:ss");
         }
 
         private void clearTime()
         {
-            this.Text = "00:00/" + this.audioPlayer.Duration.ToString(@"mm\:ss");
-        }
-
-        private void buttonPlayPause_Click(object sender, EventArgs e)
-        {
-            this.PlayPauseChange();
+            this.playingStatusControls.ForEach(e =>
+            {
+                e.PlayTime.Text = "00:00 / 00:00";
+            });
         }
     }
 }

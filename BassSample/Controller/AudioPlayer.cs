@@ -256,7 +256,7 @@ namespace MotionCaptureAudio.Controller
         /// <summary>
         /// 音量。
         /// </summary>
-        private float _volume = 0.1f;
+        private float _volume = 0.4f;
 
         /// <summary>
         /// 再生ファイル
