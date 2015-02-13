@@ -17,46 +17,36 @@ namespace MotionCaptureAudio
             InitializeComponent();
         }
 
-        internal
-            void
-                DetectedUser()
+        internal void DetectedUser()
         {
-            this.Sign.BackColor = Color.Yellow;
+            //this.Sign.BackColor = Color.Yellow;
             this.Refresh();
         }
 
-        public
-            void
-                CalibrationCompleted()
+        public void CalibrationCompleted()
         {
-            this.Sign.BackColor = Color.Green;
+            //this.Sign.BackColor = Color.Green;
             this.PictPlay.Visible = true;
             this.PictPause.Visible = false;
             this.Refresh();
         }
 
-        internal
-            void
-                LostUser()
+        internal void LostUser()
         {
-            this.Sign.BackColor = Color.Transparent;
+            //this.Sign.BackColor = Color.Transparent;
             this.PictPlay.Visible = false;
             this.PictPause.Visible = false;
             this.Refresh();
         }
 
-        public
-            void
-                Play()
+        public void Play()
         {
             this.PictPlay.Visible = true;
             this.PictPause.Visible = false;
             this.Refresh();
         }
 
-        public
-            void
-                Pause()
+        public void Pause()
         {
             this.PictPlay.Visible = false;
             this.PictPause.Visible = true;

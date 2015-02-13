@@ -45,7 +45,6 @@
             // player
             // 
             this.player.BackColor = System.Drawing.Color.Black;
-            this.player.CanPlay = false;
             this.player.Dock = System.Windows.Forms.DockStyle.Left;
             this.player.ForeColor = System.Drawing.Color.White;
             this.player.Location = new System.Drawing.Point(0, 0);

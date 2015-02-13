@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using OpenNI;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Diagnostics;
 
 namespace MotionCaptureAudio
 {
@@ -22,10 +23,12 @@ namespace MotionCaptureAudio
         private Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
         private MotionDetector motionDetector;
         private readonly double confidenceBase = 0.95;
-        private int userId = 1;
+        private int playerId = 0;
 
         private CommandState currentState = CommandState.none;
         private Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>> joints = new Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>();
+
+        private Dictionary<int, DetctionStatus> detectionStatusMap = new Dictionary<int, DetctionStatus>();
 
         /// <summary>
         /// ステートです
@@ -37,6 +40,16 @@ namespace MotionCaptureAudio
             volumeUp,
             volumeDown,
             playerChange,
+        }
+
+        /// <summary>
+        /// ユーザの検出状態
+        /// </summary>
+        enum DetctionStatus
+        {
+            none,
+            detected,
+            calibrated,
         }
 
         #endregion instance fields
@@ -87,7 +100,7 @@ namespace MotionCaptureAudio
         {
             if (this.player.CanPlay && this.currentState != CommandState.volumeDown)
             {
-                this.player.VolumeDown();
+                this.player.VolumeDown(this.playerId);
                 this.currentState = CommandState.volumeDown;
             }
         }
@@ -102,7 +115,7 @@ namespace MotionCaptureAudio
                 this.readerThread.Join();
             }
 
-            this.player.Pause(this.userId);
+            this.player.Pause(this.playerId);
             this.player.Dispose();
             this.Close();
         }
@@ -111,7 +124,7 @@ namespace MotionCaptureAudio
         {
             if (this.player.CanPlay && this.currentState != CommandState.volumeUp)
             {
-                this.player.VolumeUp();
+                this.player.VolumeUp(this.playerId);
                 this.currentState = CommandState.volumeUp;
             }
         }
@@ -120,7 +133,7 @@ namespace MotionCaptureAudio
         {
             if (this.player.CanPlay && this.currentState != CommandState.playPausecChange)
             {
-                this.player.PlayPauseChange(this.userId);
+                this.player.PlayPauseChange(this.playerId);
                 this.currentState = CommandState.playPausecChange;
             }
         }
@@ -129,9 +142,9 @@ namespace MotionCaptureAudio
         {
             if (this.player.CanPlay && this.currentState != CommandState.playerChange)
             {
-                this.userId = userId == 1 ? 2 : 1;
+                this.playerId = this.playerId == 2 ? 0 : ++this.playerId;
                 this.currentState = CommandState.playerChange;
-                Console.WriteLine(this.userId);
+                this.player.backColorChange(this.playerId);
             }
         }
 
@@ -149,21 +162,30 @@ namespace MotionCaptureAudio
             if (e.Status == CalibrationStatus.OK)
             {
                 userGene.SkeletonCapability.StartTracking(e.ID);
-                this.player.UserChange(e.ID, Color.Green);
+                Debug.Assert(this.detectionStatusMap.ContainsKey(e.ID), "e.Id not found.");
+                this.detectionStatusMap[e.ID] = DetctionStatus.calibrated;
             }
         }
 
         void user_NewUser(object sender, NewUserEventArgs e)
         {
             Console.WriteLine(String.Format("ユーザ検出: {0}", e.ID));
-            this.player.UserChange(e.ID, Color.Yellow);
+            if (!this.detectionStatusMap.ContainsKey(e.ID))
+            {
+                this.detectionStatusMap.Add(e.ID, DetctionStatus.detected);
+            }
+            else
+            {
+                this.detectionStatusMap[e.ID] = DetctionStatus.detected;
+            }
+
             userGene.SkeletonCapability.RequestCalibration(e.ID, true);
         }
 
         private void user_Lost(object sender, UserLostEventArgs e)
         {
             Console.WriteLine(String.Format("ユーザ消失: {0}", e.ID));
-            this.player.UserChange(e.ID, Color.Gray);
+            this.detectionStatusMap[e.ID] = DetctionStatus.none;
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -208,7 +230,7 @@ namespace MotionCaptureAudio
         {
             Graphics g = this.pictBox.CreateGraphics();
             List<Color> userColors = new List<Color>() { Color.Blue, Color.Red, Color.Green, Color.Orange, Color.Purple, Color.Plum };
-            Color color = userColors[user];
+            Color color = this.detectionStatusMap[user] == DetctionStatus.calibrated ? userColors[user] : Color.Gray;
 
             DrawLine(g, color, pointDict, SkeletonJoint.Head, SkeletonJoint.Neck);
 

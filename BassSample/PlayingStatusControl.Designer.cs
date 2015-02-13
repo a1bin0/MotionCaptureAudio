@@ -31,20 +31,20 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PlayingStatusControl));
             this.PictPause = new System.Windows.Forms.PictureBox();
             this.PictPlay = new System.Windows.Forms.PictureBox();
-            this.Sign = new System.Windows.Forms.Panel();
-            this.User = new System.Windows.Forms.Label();
             this.PlayTime = new System.Windows.Forms.Label();
+            this.trackBarVolume = new System.Windows.Forms.TrackBar();
             ((System.ComponentModel.ISupportInitialize)(this.PictPause)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PictPlay)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarVolume)).BeginInit();
             this.SuspendLayout();
             // 
             // PictPause
             // 
             this.PictPause.BackColor = System.Drawing.Color.Transparent;
             this.PictPause.Image = ((System.Drawing.Image)(resources.GetObject("PictPause.Image")));
-            this.PictPause.Location = new System.Drawing.Point(96, 30);
+            this.PictPause.Location = new System.Drawing.Point(13, 126);
             this.PictPause.Name = "PictPause";
-            this.PictPause.Size = new System.Drawing.Size(75, 64);
+            this.PictPause.Size = new System.Drawing.Size(90, 80);
             this.PictPause.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.PictPause.TabIndex = 23;
             this.PictPause.TabStop = false;
@@ -53,52 +53,46 @@
             // 
             this.PictPlay.BackColor = System.Drawing.Color.Transparent;
             this.PictPlay.Image = ((System.Drawing.Image)(resources.GetObject("PictPlay.Image")));
-            this.PictPlay.Location = new System.Drawing.Point(13, 29);
+            this.PictPlay.Location = new System.Drawing.Point(13, 40);
             this.PictPlay.Name = "PictPlay";
-            this.PictPlay.Size = new System.Drawing.Size(75, 65);
+            this.PictPlay.Size = new System.Drawing.Size(90, 80);
             this.PictPlay.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.PictPlay.TabIndex = 21;
             this.PictPlay.TabStop = false;
             // 
-            // Sign
-            // 
-            this.Sign.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.Sign.Location = new System.Drawing.Point(52, 11);
-            this.Sign.Name = "Sign";
-            this.Sign.Size = new System.Drawing.Size(36, 12);
-            this.Sign.TabIndex = 1;
-            // 
-            // User
-            // 
-            this.User.AutoSize = true;
-            this.User.Location = new System.Drawing.Point(11, 11);
-            this.User.Name = "User";
-            this.User.Size = new System.Drawing.Size(35, 12);
-            this.User.TabIndex = 0;
-            this.User.Text = "User1";
-            // 
             // PlayTime
             // 
             this.PlayTime.AutoSize = true;
-            this.PlayTime.Location = new System.Drawing.Point(94, 11);
+            this.PlayTime.Font = new System.Drawing.Font("MS UI Gothic", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.PlayTime.Location = new System.Drawing.Point(10, 15);
             this.PlayTime.Name = "PlayTime";
-            this.PlayTime.Size = new System.Drawing.Size(71, 12);
+            this.PlayTime.Size = new System.Drawing.Size(84, 13);
             this.PlayTime.TabIndex = 2;
             this.PlayTime.Text = "00:00 / 01:23";
+            // 
+            // trackBarVolume
+            // 
+            this.trackBarVolume.BackColor = System.Drawing.SystemColors.MenuText;
+            this.trackBarVolume.Location = new System.Drawing.Point(109, 0);
+            this.trackBarVolume.Name = "trackBarVolume";
+            this.trackBarVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.trackBarVolume.Size = new System.Drawing.Size(45, 217);
+            this.trackBarVolume.TabIndex = 24;
+            this.trackBarVolume.Value = 3;
             // 
             // PlayingStatusControl
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
             this.BackColor = System.Drawing.Color.Transparent;
+            this.Controls.Add(this.trackBarVolume);
             this.Controls.Add(this.PlayTime);
             this.Controls.Add(this.PictPause);
             this.Controls.Add(this.PictPlay);
-            this.Controls.Add(this.Sign);
-            this.Controls.Add(this.User);
             this.Name = "PlayingStatusControl";
-            this.Size = new System.Drawing.Size(190, 108);
+            this.Size = new System.Drawing.Size(160, 220);
             ((System.ComponentModel.ISupportInitialize)(this.PictPause)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PictPlay)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarVolume)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -106,10 +100,9 @@
 
         #endregion
 
-        internal System.Windows.Forms.Panel Sign;
-        internal System.Windows.Forms.Label User;
         internal System.Windows.Forms.Label PlayTime;
         internal System.Windows.Forms.PictureBox PictPause;
         internal System.Windows.Forms.PictureBox PictPlay;
+        public System.Windows.Forms.TrackBar trackBarVolume;
     }
 }
