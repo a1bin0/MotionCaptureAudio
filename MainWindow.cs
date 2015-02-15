@@ -1,12 +1,11 @@
-﻿using System;
+﻿using OpenNI;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
-using System.Threading;
+using System.Diagnostics;
+using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Threading;
-using OpenNI;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Diagnostics;
 
 namespace MotionCaptureAudio
 {
@@ -16,14 +15,14 @@ namespace MotionCaptureAudio
 
         private Context context;
         private ScriptNode scriptNode;
-        private Thread readerThread;
         private bool shouldRun = true;
         private DepthGenerator depth;
         private UserGenerator userGene;
         private Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
         private MotionDetector motionDetector;
-        private readonly double confidenceBase = 0.95;
         private int playerId = 0;
+        private Graphics graphics;
+        private List<Color> userColors = new List<Color>() { Color.Blue, Color.Red, Color.Green, Color.Orange, Color.Purple, Color.Plum };
 
         private CommandState currentState = CommandState.none;
         private Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>> joints = new Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>();
@@ -72,12 +71,13 @@ namespace MotionCaptureAudio
             this.userGene.SkeletonCapability.SetSkeletonProfile(SkeletonProfile.All);
 
             this.context.StartGeneratingAll();
+
+            this.graphics = this.pictBox.CreateGraphics();
         }
 
         #endregion constructors
 
         #region methods
-        #endregion methods
 
         protected override void OnLoad(EventArgs e)
         {
@@ -98,9 +98,9 @@ namespace MotionCaptureAudio
 
         private void leftHandDownDetected(object sender, EventArgs e)
         {
-            if (this.player.CanPlay && this.currentState != CommandState.volumeDown)
+            if (this.playerController.CanPlay && this.currentState != CommandState.volumeDown)
             {
-                this.player.VolumeDown(this.playerId);
+                this.playerController.VolumeDown(this.playerId);
                 this.currentState = CommandState.volumeDown;
             }
         }
@@ -109,42 +109,36 @@ namespace MotionCaptureAudio
         {
             this.shouldRun = false;
 
-            if (this.readerThread != null)
-            {
-                this.readerThread.Abort();
-                this.readerThread.Join();
-            }
-
-            this.player.Pause(this.playerId);
-            this.player.Dispose();
+            this.playerController.Pause(this.playerId);
+            this.playerController.Dispose();
             this.Close();
         }
 
         private void leftHandUpDetected(object sender, EventArgs e)
         {
-            if (this.player.CanPlay && this.currentState != CommandState.volumeUp)
+            if (this.playerController.CanPlay && this.currentState != CommandState.volumeUp)
             {
-                this.player.VolumeUp(this.playerId);
+                this.playerController.VolumeUp(this.playerId);
                 this.currentState = CommandState.volumeUp;
             }
         }
 
         private void rightHandUpDetected(object sender, EventArgs e)
         {
-            if (this.player.CanPlay && this.currentState != CommandState.playPausecChange)
+            if (this.playerController.CanPlay && this.currentState != CommandState.playPausecChange)
             {
-                this.player.PlayPauseChange(this.playerId);
+                this.playerController.PlayPauseChange(this.playerId);
                 this.currentState = CommandState.playPausecChange;
             }
         }
 
         private void rightHandDownDetected(object sender, EventArgs e)
         {
-            if (this.player.CanPlay && this.currentState != CommandState.playerChange)
+            if (this.playerController.CanPlay && this.currentState != CommandState.playerChange)
             {
-                this.playerId = this.playerId == 2 ? 0 : ++this.playerId;
+                this.playerId = ((this.playerId + 1) % 3);
                 this.currentState = CommandState.playerChange;
-                this.player.backColorChange(this.playerId);
+                this.playerController.backColorChange(this.playerId);
             }
         }
 
@@ -213,43 +207,40 @@ namespace MotionCaptureAudio
                             pointDict.Add(skeletonJoint, userGene.SkeletonCapability.GetSkeletonJointPosition(user, skeletonJoint));
                         }
 
-                        this.motionDetector.DetectMotion(user, pointDict);
+                        if (this.detectionStatusMap[user] == DetctionStatus.calibrated)
+                        {
+                            this.motionDetector.DetectMotion(user, pointDict);
+                        }
+
                         var pointDic = new List<Object>() { user, pointDict };
 
-                        //if (this.isDrawable(pointDict))
-                        //{
                         this.Invoke(new Action<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>(drawSkeleton), pointDic.ToArray());
-                        this.pictBox.Invalidate();
-                        //}
                     }
+
+                    this.pictBox.Invalidate();
                 }));
             }
         }
 
         private void drawSkeleton(int user, Dictionary<SkeletonJoint, SkeletonJointPosition> pointDict)
         {
-            Graphics g = this.pictBox.CreateGraphics();
-            List<Color> userColors = new List<Color>() { Color.Blue, Color.Red, Color.Green, Color.Orange, Color.Purple, Color.Plum };
-            Color color = this.detectionStatusMap[user] == DetctionStatus.calibrated ? userColors[user] : Color.Gray;
+            Color color = (this.detectionStatusMap[user] == DetctionStatus.calibrated) ? this.userColors[user] : Color.Gray;
 
-            DrawLine(g, color, pointDict, SkeletonJoint.Head, SkeletonJoint.Neck);
+            DrawLine(this.graphics, color, pointDict, SkeletonJoint.Head, SkeletonJoint.Neck);
 
-            DrawLine(g, color, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightHip);
-            DrawLine(g, color, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.LeftHip);
+            DrawLine(this.graphics, color, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightHip);
+            DrawLine(this.graphics, color, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.LeftHip);
 
-            DrawLine(g, color, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.LeftElbow);
-            DrawLine(g, color, pointDict, SkeletonJoint.LeftElbow, SkeletonJoint.LeftHand);
+            DrawLine(this.graphics, color, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.LeftElbow);
+            DrawLine(this.graphics, color, pointDict, SkeletonJoint.LeftElbow, SkeletonJoint.LeftHand);
 
-            DrawLine(g, color, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightShoulder);
-            DrawLine(g, color, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.RightElbow);
-            DrawLine(g, color, pointDict, SkeletonJoint.RightElbow, SkeletonJoint.RightHand);
+            DrawLine(this.graphics, color, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightShoulder);
+            DrawLine(this.graphics, color, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.RightElbow);
+            DrawLine(this.graphics, color, pointDict, SkeletonJoint.RightElbow, SkeletonJoint.RightHand);
 
-            DrawLine(g, color, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.RightHip);
-            DrawLine(g, color, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.LeftKnee);
-            DrawLine(g, color, pointDict, SkeletonJoint.RightHip, SkeletonJoint.RightKnee);
-
-            g.Dispose();
-            if (g != null) g = null;
+            DrawLine(this.graphics, color, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.RightHip);
+            DrawLine(this.graphics, color, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.LeftKnee);
+            DrawLine(this.graphics, color, pointDict, SkeletonJoint.RightHip, SkeletonJoint.RightKnee);
         }
 
         private void GetJoint(int user, SkeletonJoint joint)
@@ -263,12 +254,12 @@ namespace MotionCaptureAudio
             {
                 pos.Position = this.depth.ConvertRealWorldToProjective(pos.Position);
             }
+
             this.joints[user][joint] = pos;
         }
 
         private void DrawLine(Graphics g, Color color, Dictionary<SkeletonJoint, SkeletonJointPosition> dict, SkeletonJoint j1, SkeletonJoint j2)
         {
-
             Point3D pos1 = this.depth.ConvertRealWorldToProjective(dict[j1].Position);
             Point3D pos2 = this.depth.ConvertRealWorldToProjective(dict[j2].Position);
 
@@ -277,25 +268,8 @@ namespace MotionCaptureAudio
             g.DrawLine(new Pen(color, 10),
                         new Point((int)(pos1.X * 2), (int)(pos1.Y * 2)),
                         new Point((int)(pos2.X * 2), (int)(pos2.Y * 2)));
-
-            this.pictBox.Invalidate();
         }
 
-        private bool isDrawable(Dictionary<SkeletonJoint, SkeletonJointPosition> pointDict)
-        {
-            return
-                 (pointDict[SkeletonJoint.Head].Confidence > this.confidenceBase) &&
-                 (pointDict[SkeletonJoint.Neck].Confidence > this.confidenceBase) &&
-                 (pointDict[SkeletonJoint.RightShoulder].Confidence > this.confidenceBase) &&
-                 (pointDict[SkeletonJoint.RightElbow].Confidence > this.confidenceBase) &&
-                 (pointDict[SkeletonJoint.RightHand].Confidence > this.confidenceBase) &&
-                 (pointDict[SkeletonJoint.RightHip].Confidence > this.confidenceBase) &&
-                 (pointDict[SkeletonJoint.RightKnee].Confidence > this.confidenceBase) &&
-                 (pointDict[SkeletonJoint.LeftShoulder].Confidence > this.confidenceBase) &&
-                 (pointDict[SkeletonJoint.LeftElbow].Confidence > this.confidenceBase) &&
-                 (pointDict[SkeletonJoint.LeftHand].Confidence > this.confidenceBase) &&
-                 (pointDict[SkeletonJoint.LeftHip].Confidence > this.confidenceBase) &&
-                 (pointDict[SkeletonJoint.LeftKnee].Confidence > this.confidenceBase);
-        }
+        #endregion methods
     }
 }

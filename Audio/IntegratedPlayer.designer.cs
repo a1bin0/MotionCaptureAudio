@@ -1,6 +1,6 @@
 ﻿namespace MotionCaptureAudio
 {
-    partial class Player
+    partial class IntegratedPlayer
     {
         /// <summary>
         /// 必要なデザイナー変数です。
@@ -28,29 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.timer1 = new System.Windows.Forms.Timer();
-            this.timer2 = new System.Windows.Forms.Timer();
-            this.timer3 = new System.Windows.Forms.Timer();
             this.comboBoxDevice = new System.Windows.Forms.ComboBox();
-            this.playingStatusControl3 = new MotionCaptureAudio.PlayingStatusControl();
-            this.playingStatusControl2 = new MotionCaptureAudio.PlayingStatusControl();
-            this.playingStatusControl1 = new MotionCaptureAudio.PlayingStatusControl();
+            this.playingStatusControl3 = new MotionCaptureAudio.Player();
+            this.playingStatusControl2 = new MotionCaptureAudio.Player();
+            this.playingStatusControl1 = new MotionCaptureAudio.Player();
             this.SuspendLayout();
-            // 
-            // timer1
-            // 
-            this.timer1.Interval = 500;
-            this.timer1.Tick += new System.EventHandler(this.timer_Tick);
-            // 
-            // timer2
-            // 
-            this.timer2.Interval = 500;
-            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
-            // 
-            // timer3
-            // 
-            this.timer3.Interval = 500;
-            this.timer3.Tick += new System.EventHandler(this.timer3_Tick);
             // 
             // comboBoxDevice
             // 
@@ -105,12 +87,9 @@
 
         #endregion
 
-        private System.Windows.Forms.Timer timer1;
-        private PlayingStatusControl playingStatusControl1;
-        private PlayingStatusControl playingStatusControl2;
-        private System.Windows.Forms.Timer timer2;
-        private System.Windows.Forms.Timer timer3;
-        private PlayingStatusControl playingStatusControl3;
+        private Player playingStatusControl1;
+        private Player playingStatusControl2;
+        private Player playingStatusControl3;
         private System.Windows.Forms.ComboBox comboBoxDevice;
     }
 }

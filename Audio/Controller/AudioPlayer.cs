@@ -96,7 +96,7 @@ namespace MotionCaptureAudio.Controller
         {
             if (AudioPlayer.IsBassInitialized) { return; }
 
-             //Bass.Net
+            //Bass.Net
             if (!Bass.LoadMe(folderPath))
             {
                 throw new Exception("Bass.Net の初期化に失敗しました。");
@@ -109,7 +109,7 @@ namespace MotionCaptureAudio.Controller
                 throw new Exception("デバイスの初期化に失敗しました。\nError : " + error.ToString());
             }
 
-             //プラグイン
+            //プラグイン
             {
                 var plugins = Bass.BASS_PluginLoadDirectory(folderPath);
                 AudioPlayer.FileFilter = Utils.BASSAddOnGetPluginFileFilter(plugins, null);
