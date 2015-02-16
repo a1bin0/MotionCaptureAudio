@@ -65,7 +65,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyInfo-OpenNI.cs" />
     <Compile Include="AssemblyInfo.cs">
     </Compile>
     <Compile Include="MainWindow.cs">
@@ -77,6 +76,15 @@
     <Compile Include="MotionDetector.cs" />
     <Compile Include="Program.cs">
     </Compile>
+    <Compile Include="..\Res\AssemblyInfo-OpenNI.cs">
+      <Link>AssemblyInfo-OpenNI.cs</Link>
+    </Compile>
+    <Compile Include="UserPlayingStatusForm.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="UserPlayingStatusForm.designer.cs">
+      <DependentUpon>UserPlayingStatusForm.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -85,12 +93,15 @@
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="UserPlayingStatusForm.resx">
+      <DependentUpon>UserPlayingStatusForm.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="Audio\Audio.csproj">
+    <ProjectReference Include="BassSample\Audio.csproj">
       <Project>{c24af3fc-5bc8-4d56-862f-4b36aa5faaba}</Project>
       <Name>Audio</Name>
     </ProjectReference>

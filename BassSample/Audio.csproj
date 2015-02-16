@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MotionCaptureAudio</RootNamespace>
-    <AssemblyName>Audio</AssemblyName>
+    <AssemblyName>BassSample</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -37,7 +37,11 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Bass.Net">
-      <HintPath>..\dll\Bass.Net.dll</HintPath>
+      <HintPath>..\Bass.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="BassSample, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\BassSample.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -52,26 +56,26 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller\AudioPlayer.cs" />
-    <Compile Include="IntegratedPlayer.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="IntegratedPlayer.designer.cs">
-      <DependentUpon>IntegratedPlayer.cs</DependentUpon>
-    </Compile>
-    <Compile Include="Controller\IAudioPlayer.cs" />
     <Compile Include="Player.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Player.designer.cs">
       <DependentUpon>Player.cs</DependentUpon>
     </Compile>
+    <Compile Include="Controller\IAudioPlayer.cs" />
+    <Compile Include="PlayingStatusControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="PlayingStatusControl.designer.cs">
+      <DependentUpon>PlayingStatusControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="IntegratedPlayer.resx">
-      <DependentUpon>IntegratedPlayer.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Player.resx">
       <DependentUpon>Player.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PlayingStatusControl.resx">
+      <DependentUpon>PlayingStatusControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

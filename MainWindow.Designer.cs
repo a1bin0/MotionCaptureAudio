@@ -10,9 +10,6 @@
 		/// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
 		protected override void Dispose(bool disposing)
 		{
-            this.graphics.Dispose();
-            if (this.graphics != null) this.graphics = null;
-
 			if (disposing && (components != null))
 			{
 				components.Dispose();
@@ -29,7 +26,7 @@
 		private void InitializeComponent()
 		{
             this.panel1 = new System.Windows.Forms.Panel();
-            this.playerController = new MotionCaptureAudio.IntegratedPlayer();
+            this.player = new MotionCaptureAudio.Player();
             this.pictBox = new System.Windows.Forms.PictureBox();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictBox)).BeginInit();
@@ -37,7 +34,7 @@
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.playerController);
+            this.panel1.Controls.Add(this.player);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -47,13 +44,13 @@
             // 
             // player
             // 
-            this.playerController.BackColor = System.Drawing.Color.Black;
-            this.playerController.Dock = System.Windows.Forms.DockStyle.Left;
-            this.playerController.ForeColor = System.Drawing.Color.White;
-            this.playerController.Location = new System.Drawing.Point(0, 0);
-            this.playerController.Name = "player";
-            this.playerController.Size = new System.Drawing.Size(190, 720);
-            this.playerController.TabIndex = 13;
+            this.player.BackColor = System.Drawing.Color.Black;
+            this.player.Dock = System.Windows.Forms.DockStyle.Left;
+            this.player.ForeColor = System.Drawing.Color.White;
+            this.player.Location = new System.Drawing.Point(0, 0);
+            this.player.Name = "player";
+            this.player.Size = new System.Drawing.Size(190, 720);
+            this.player.TabIndex = 13;
             // 
             // pictBox
             // 
@@ -86,7 +83,7 @@
 
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.PictureBox pictBox;
-        private IntegratedPlayer playerController;
+        private Player player;
 
 
 
