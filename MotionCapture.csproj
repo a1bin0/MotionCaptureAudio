@@ -101,7 +101,7 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="BassSample\Audio.csproj">
+    <ProjectReference Include="Audio\Audio.csproj">
       <Project>{c24af3fc-5bc8-4d56-862f-4b36aa5faaba}</Project>
       <Name>Audio</Name>
     </ProjectReference>

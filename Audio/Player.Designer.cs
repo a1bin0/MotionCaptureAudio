@@ -28,9 +28,10 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.timer1 = new System.Windows.Forms.Timer();
-            this.timer2 = new System.Windows.Forms.Timer();
-            this.timer3 = new System.Windows.Forms.Timer();
+            this.components = new System.ComponentModel.Container();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.timer3 = new System.Windows.Forms.Timer(this.components);
             this.comboBoxDevice = new System.Windows.Forms.ComboBox();
             this.playingStatusControl3 = new MotionCaptureAudio.PlayingStatusControl();
             this.playingStatusControl2 = new MotionCaptureAudio.PlayingStatusControl();
@@ -54,10 +55,11 @@
             // 
             // comboBoxDevice
             // 
+            this.comboBoxDevice.Font = new System.Drawing.Font("MS UI Gothic", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.comboBoxDevice.FormattingEnabled = true;
             this.comboBoxDevice.Location = new System.Drawing.Point(3, 666);
             this.comboBoxDevice.Name = "comboBoxDevice";
-            this.comboBoxDevice.Size = new System.Drawing.Size(156, 20);
+            this.comboBoxDevice.Size = new System.Drawing.Size(156, 21);
             this.comboBoxDevice.TabIndex = 22;
             // 
             // playingStatusControl3

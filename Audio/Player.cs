@@ -15,16 +15,9 @@ namespace MotionCaptureAudio
 
     public partial class Player : UserControl
     {
-        // mm add start
-        private bool canplay;
-        // mm add end
-        public bool CanPlay
-        {
-            get
-            {
-                return this.canplay;
-            }
-        }
+        public bool canPlay = false;
+        public bool[] canUp = new bool[3];
+        public bool[] canDown = new bool[3];
 
         private List<PlayingStatusControl> playingControls = new List<PlayingStatusControl>();
         private List<Timer> timers = new List<Timer>();
@@ -33,9 +26,12 @@ namespace MotionCaptureAudio
         public Player()
         {
             InitializeComponent();
-            this.createAudioPlayer();
-            this.createPlayingStatusControls();
-            this.initializeComboBox();
+            if (!this.DesignMode)
+            {
+                this.createAudioPlayer();
+                this.createPlayingStatusControls();
+                this.initializeComboBox();
+            }
         }
 
         public void backColorChange(int playerId)
@@ -56,10 +52,9 @@ namespace MotionCaptureAudio
             var count = 0;
             this.playingControls.ForEach(e =>
             {
-                //e.User.Text = "user" + (count + 1).ToString();
                 e.PlayTime.Text = "00:00 / 00:00";
                 e.PictPlay.Visible = false;
-                e.PictPause.Visible = false;
+                e.PictPause.Visible = true;
                 e.trackBarVolume.Value = (int)this.audioPlayers[count].Volume * 10;
                 count++;
             });
@@ -99,10 +94,7 @@ namespace MotionCaptureAudio
             {
                 foreach (var item in this.audioPlayers)
                 {
-                    var result = item.InitializeInstance(
-                        this.comboBoxDevice.SelectedIndex,
-                        fileName);
-
+                    var result = item.InitializeInstance(this.comboBoxDevice.SelectedIndex, fileName);
                     if (result == Result.NG) return result;
                 }
             }
@@ -190,39 +182,30 @@ namespace MotionCaptureAudio
 
         public void VolumeUp(int playerId)
         {
-            if (this.audioPlayers[playerId].Volume >= 1.0) return;
             if (this.InvokeRequired)
             {
                 this.Invoke(new Action<int>(this.VolumeUp), playerId);
                 return;
             }
 
-            if (this.audioPlayers[playerId].Volume < 1.0)
-            {
-                this.audioPlayers[playerId].Volume += 0.1f;
-                this.playingControls[playerId].trackBarVolume.Value += 1;
-            }
+            this.audioPlayers[playerId].Volume += 0.1f;
+            this.playingControls[playerId].trackBarVolume.Value += 1;
+            this.canUp[playerId] = this.audioPlayers[playerId].Volume < 1.0;
+            this.canDown[playerId] = true;
         }
 
         public void VolumeDown(int playerId)
         {
-            if (this.audioPlayers[playerId].Volume == 0) return;
             if (this.InvokeRequired)
             {
                 this.Invoke(new Action<int>(this.VolumeDown), playerId);
                 return;
             }
 
-            if (this.audioPlayers[playerId].Volume >= 0.1)
-            {
-                this.audioPlayers[playerId].Volume -= 0.1f;
-                this.playingControls[playerId].trackBarVolume.Value -= 1;
-            }
-        }
-
-        public void UserChange(int userId, Color color)
-        {
-            //this.playingControls[userId].Sign.BackColor = color;
+            this.audioPlayers[playerId].Volume -= 0.1f;
+            this.playingControls[playerId].trackBarVolume.Value -= 1;
+            this.canDown[playerId] = this.audioPlayers[playerId].Volume >= 0.1;
+            this.canUp[playerId] = true;
         }
 
         private void startTimer(int userId)
@@ -255,32 +238,32 @@ namespace MotionCaptureAudio
                 + this.audioPlayers[2].Duration.ToString(@"mm\:ss");
         }
 
-        private void clearTime()
-        {
-            this.playingControls.ForEach(e =>
-            {
-                e.PlayTime.Text = "00:00 / 00:00";
-            });
-        }
-
         private void setMusicFile()
         {
             string path = Application.ExecutablePath;
-            path = path.Remove(path.LastIndexOf("\\"));
-            string fName = path + "\\BigBridge.mp3";
+            string fName = path.Remove(path.LastIndexOf("\\")) +"\\BigBridge.mp3";
             if (this.initializeInstance(fName) != Result.OK) return;
-            //this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
-            this.canplay = true;
+            this.canPlay = true;
         }
 
         private void Player_Load(object sender, EventArgs e)
         {
-            this.setMusicFile();
-            this.backColorChange(0);
+            if (!this.DesignMode)
+            {
+                this.setMusicFile();
+                this.backColorChange(0);
 
-            this.timers.Add(this.timer1);
-            this.timers.Add(this.timer2);
-            this.timers.Add(this.timer3);
+                this.timers.Add(this.timer1);
+                this.timers.Add(this.timer2);
+                this.timers.Add(this.timer3);
+
+                for(int i = 0; i < 3; i++)
+                {
+                    this.playingControls[i].trackBarVolume.Value = (int)(this.audioPlayers[i].Volume * 10);
+                    this.canUp[i] = this.canPlay && this.audioPlayers[i].Volume <= 0.9;
+                    this.canDown[i] = this.canPlay && this.audioPlayers[i].Volume >= 0.1;
+                }
+            }
         }
     }
 }

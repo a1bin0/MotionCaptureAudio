@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MotionCaptureAudio</RootNamespace>
-    <AssemblyName>BassSample</AssemblyName>
+    <AssemblyName>Audio</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -38,10 +38,6 @@
   <ItemGroup>
     <Reference Include="Bass.Net">
       <HintPath>..\Bass.Net.dll</HintPath>
-    </Reference>
-    <Reference Include="BassSample, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>bin\Debug\BassSample.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

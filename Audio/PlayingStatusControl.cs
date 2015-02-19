@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
 namespace MotionCaptureAudio
 {
@@ -19,13 +11,11 @@ namespace MotionCaptureAudio
 
         internal void DetectedUser()
         {
-            //this.Sign.BackColor = Color.Yellow;
             this.Refresh();
         }
 
         public void CalibrationCompleted()
         {
-            //this.Sign.BackColor = Color.Green;
             this.PictPlay.Visible = true;
             this.PictPause.Visible = false;
             this.Refresh();
@@ -33,7 +23,6 @@ namespace MotionCaptureAudio
 
         internal void LostUser()
         {
-            //this.Sign.BackColor = Color.Transparent;
             this.PictPlay.Visible = false;
             this.PictPause.Visible = false;
             this.Refresh();
