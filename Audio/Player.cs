@@ -260,7 +260,7 @@ namespace MotionCaptureAudio
                 for(int i = 0; i < 3; i++)
                 {
                     this.playingControls[i].trackBarVolume.Value = (int)(this.audioPlayers[i].Volume * 10);
-                    this.canUp[i] = this.canPlay && this.audioPlayers[i].Volume <= 0.9;
+                    this.canUp[i] = this.canPlay && this.audioPlayers[i].Volume < 1.0;
                     this.canDown[i] = this.canPlay && this.audioPlayers[i].Volume >= 0.1;
                 }
             }
