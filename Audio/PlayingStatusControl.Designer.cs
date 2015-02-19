@@ -48,6 +48,7 @@
             this.PictPause.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.PictPause.TabIndex = 23;
             this.PictPause.TabStop = false;
+            this.PictPause.Visible = false;
             // 
             // PictPlay
             // 
@@ -59,6 +60,7 @@
             this.PictPlay.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.PictPlay.TabIndex = 21;
             this.PictPlay.TabStop = false;
+            this.PictPlay.Visible = false;
             // 
             // PlayTime
             // 

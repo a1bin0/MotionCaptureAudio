@@ -169,6 +169,9 @@ namespace MotionCaptureAudio
             {
                 userGene.SkeletonCapability.StartTracking(e.ID);
                 this.detectionStatus = DetectionStatus.calibrated;
+                this.player.CalibrationCompleted(0);
+                this.player.CalibrationCompleted(1);
+                this.player.CalibrationCompleted(2);
             }
         }
 
@@ -179,6 +182,10 @@ namespace MotionCaptureAudio
             {
                 this.detectionStatus = DetectionStatus.detected;
                 userGene.SkeletonCapability.RequestCalibration(e.ID, true);
+
+                this.player.DetectedUser(0);
+                this.player.DetectedUser(1);
+                this.player.DetectedUser(2);
             }
         }
 
@@ -186,6 +193,10 @@ namespace MotionCaptureAudio
         {
             Console.WriteLine(String.Format("ユーザ消失: {0}", e.ID));
             this.detectionStatus = DetectionStatus.none;
+
+            this.player.LostUser(0);
+            this.player.LostUser(1);
+            this.player.LostUser(2);
         }
 
         protected override void OnClosing(CancelEventArgs e)
@@ -275,9 +286,9 @@ namespace MotionCaptureAudio
 
             if (dict[j1].Confidence == 0 || dict[j2].Confidence == 0) return;
 
-            g.DrawLine(new Pen(color, 10),
-                        new Point((int)(pos1.X * 2), (int)(pos1.Y * 2)),
-                        new Point((int)(pos2.X * 2), (int)(pos2.Y * 2)));
+            g.DrawLine(new Pen(color, 30),
+                        new Point((int)(pos1.X * 3), (int)(pos1.Y * 3)),
+                        new Point((int)(pos2.X * 3), (int)(pos2.Y * 3)));
 
             this.pictBox.Invalidate();
         }

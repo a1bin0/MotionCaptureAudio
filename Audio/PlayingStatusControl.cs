@@ -23,6 +23,7 @@ namespace MotionCaptureAudio
 
         internal void LostUser()
         {
+            this.Pause();
             this.PictPlay.Visible = false;
             this.PictPause.Visible = false;
             this.Refresh();
