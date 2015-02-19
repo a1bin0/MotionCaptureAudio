@@ -30,15 +30,15 @@ namespace MotionCaptureAudio
 
         public void Play()
         {
-            this.PictPlay.Visible = true;
-            this.PictPause.Visible = false;
+            this.PictPlay.Visible = false;
+            this.PictPause.Visible = true;
             this.Refresh();
         }
 
         public void Pause()
         {
-            this.PictPlay.Visible = false;
-            this.PictPause.Visible = true;
+            this.PictPlay.Visible = true;
+            this.PictPause.Visible = false;
             this.Refresh();
         }
     }
