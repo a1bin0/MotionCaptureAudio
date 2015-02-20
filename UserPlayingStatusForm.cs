@@ -1,7 +1,5 @@
-﻿using System.Windows.Forms;
-using MotionCaptureAudio.Controller;
+﻿using MotionCaptureAudio.Controller;
 using System;
-using System.IO;
 using System.Windows.Forms;
 
 namespace MotionCaptureAudio

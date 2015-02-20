@@ -65,6 +65,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyInfo-OpenNI.cs" />
     <Compile Include="AssemblyInfo.cs">
     </Compile>
     <Compile Include="MainWindow.cs">
@@ -75,9 +76,6 @@
     </Compile>
     <Compile Include="MotionDetector.cs" />
     <Compile Include="Program.cs">
-    </Compile>
-    <Compile Include="..\Res\AssemblyInfo-OpenNI.cs">
-      <Link>AssemblyInfo-OpenNI.cs</Link>
     </Compile>
     <Compile Include="UserPlayingStatusForm.cs">
       <SubType>UserControl</SubType>
