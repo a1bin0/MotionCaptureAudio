@@ -77,12 +77,6 @@
     <Compile Include="MotionDetector.cs" />
     <Compile Include="Program.cs">
     </Compile>
-    <Compile Include="UserPlayingStatusForm.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UserPlayingStatusForm.designer.cs">
-      <DependentUpon>UserPlayingStatusForm.cs</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -90,9 +84,6 @@
   <ItemGroup>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UserPlayingStatusForm.resx">
-      <DependentUpon>UserPlayingStatusForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

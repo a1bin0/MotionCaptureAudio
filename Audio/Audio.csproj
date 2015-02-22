@@ -52,26 +52,26 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controller\AudioPlayer.cs" />
+    <Compile Include="IntegratedPlayer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="IntegratedPlayer.designer.cs">
+      <DependentUpon>IntegratedPlayer.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Controller\IAudioPlayer.cs" />
     <Compile Include="Player.cs">
       <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="Player.designer.cs">
       <DependentUpon>Player.cs</DependentUpon>
     </Compile>
-    <Compile Include="Controller\IAudioPlayer.cs" />
-    <Compile Include="PlayingStatusControl.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="PlayingStatusControl.designer.cs">
-      <DependentUpon>PlayingStatusControl.cs</DependentUpon>
-    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="IntegratedPlayer.resx">
+      <DependentUpon>IntegratedPlayer.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Player.resx">
       <DependentUpon>Player.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="PlayingStatusControl.resx">
-      <DependentUpon>PlayingStatusControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

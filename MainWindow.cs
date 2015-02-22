@@ -1,18 +1,22 @@
-﻿using System;
-using System.ComponentModel;
-using System.Threading;
-using System.Windows.Forms;
-using System.Windows.Threading;
+﻿using MotionCaptureAudio.Controller;
 using OpenNI;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Diagnostics;
+using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace MotionCaptureAudio
 {
     public partial class MainWindow : Form
     {
         #region instance fields
+
+        private const string volumeUp = "Volume up ↑↑";
+        private const string volumeDown = "Volume down ↓↓";
+        private const string playMusic = "Play music";
+        private const string pauseMusic = "Pause music";
+        private const string changePlayer = "Player changed";
 
         private Bitmap img;
 
@@ -23,22 +27,24 @@ namespace MotionCaptureAudio
         private Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
         private MotionDetector motionDetector;
         private int playerId = 0;
+        private string message = string.Empty;
+        private System.Windows.Forms.Timer messageTimer = null;
+        private CommandState currentState = CommandState.None;
+        private Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>> joints
+            = new Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>();
 
-        private CommandState currentState = CommandState.none;
-        private Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>> joints = new Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>();
-
-        private DetectionStatus detectionStatus = DetectionStatus.none;
+        private DetectionStatus detectionStatus = DetectionStatus.None;
 
         /// <summary>
-        /// ステートです
+        /// 操作ステート
         /// </summary>
         enum CommandState
         {
-            none,
-            playPausecChange,
-            volumeUp,
-            volumeDown,
-            playerChange,
+            None,
+            PlayPauseChange,
+            VolumeUp,
+            VolumeDown,
+            PlayerChange,
         }
 
         /// <summary>
@@ -46,9 +52,9 @@ namespace MotionCaptureAudio
         /// </summary>
         enum DetectionStatus
         {
-            none,
-            detected,
-            calibrated,
+            None,
+            Detected,
+            Calibrated,
         }
 
         #endregion instance fields
@@ -60,8 +66,8 @@ namespace MotionCaptureAudio
             InitializeComponent();
 
             this.img = new Bitmap(this.pictBox.Width, this.pictBox.Height);
-            this.context = Context.CreateFromXmlFile(@"Config.xml", out this.scriptNode);
-            this.depth = context.FindExistingNode(NodeType.Depth) as DepthGenerator;
+            this.context = Context.CreateFromXmlFile(@"..\..\Audio\Config\Config.xml", out this.scriptNode);
+            this.depth = this.context.FindExistingNode(NodeType.Depth) as DepthGenerator;
             this.context.GlobalMirror = true;
             this.setupMotiondetector();
 
@@ -77,7 +83,6 @@ namespace MotionCaptureAudio
         #endregion constructors
 
         #region methods
-        #endregion methods
 
         protected override void OnLoad(EventArgs e)
         {
@@ -96,57 +101,93 @@ namespace MotionCaptureAudio
             this.motionDetector.IdleDetected += this.idleDetected;
         }
 
+        private void startMessageTimer()
+        {
+            if(this.messageTimer != null && this.messageTimer.Enabled)
+            {
+                this.messageTimer.Stop();
+                this.messageTimer.Dispose();
+            }
+
+            this.messageTimer = new System.Windows.Forms.Timer();
+            this.messageTimer.Tick += this.clearMessage;
+            this.messageTimer.Interval = 2000;
+
+            this.messageTimer.Start();
+        }
+
+        private void clearMessage(object sender, EventArgs e)
+        {
+            this.messageTimer.Stop();
+            this.message = string.Empty;
+
+            this.messageTimer.Dispose();
+        }
+
         private void leftHandDownDetected(object sender, EventArgs e)
         {
-            if (this.player.canDown[this.playerId] && this.currentState != CommandState.volumeDown)
+            if (this.currentState != CommandState.VolumeDown)
             {
-                this.player.VolumeDown(this.playerId);
-                this.currentState = CommandState.volumeDown;
+                this.message = volumeDown;
+                this.startMessageTimer();
+
+                this.integratedPlayer.VolumeDown(this.playerId);
+                this.currentState = CommandState.VolumeDown;
             }
         }
 
         private void bothHandUpDetected(object sender, EventArgs e)
         {
-            this.player.Pause(0);
-            this.player.Pause(1);
-            this.player.Pause(2);
+            this.integratedPlayer.Exit();
 
             this.Close();
         }
 
         private void leftHandUpDetected(object sender, EventArgs e)
         {
-            if (this.player.canUp[this.playerId] && this.currentState != CommandState.volumeUp)
+            if (this.currentState != CommandState.VolumeUp)
             {
-                this.player.VolumeUp(this.playerId);
-                this.currentState = CommandState.volumeUp;
+                this.message = volumeUp;
+                this.startMessageTimer();
+
+                this.integratedPlayer.VolumeUp(this.playerId);
+                this.currentState = CommandState.VolumeUp;
             }
         }
 
         private void rightHandUpDetected(object sender, EventArgs e)
         {
-            if (this.player.canPlay && this.currentState != CommandState.playPausecChange)
+            if (this.currentState != CommandState.PlayPauseChange)
             {
-                this.player.PlayPauseChange(this.playerId);
-                this.currentState = CommandState.playPausecChange;
+                this.message
+                    = (this.integratedPlayer.GetPlayState(this.playerId) == PlayState.Playing)
+                    ? pauseMusic : playMusic;
+                this.startMessageTimer();
+
+                this.integratedPlayer.PlayPauseChange(this.playerId);
+                this.currentState = CommandState.PlayPauseChange;
             }
         }
 
         private void rightHandDownDetected(object sender, EventArgs e)
         {
-            if (this.player.canPlay && this.currentState != CommandState.playerChange)
+            if (this.currentState != CommandState.PlayerChange)
             {
-                this.playerId = this.playerId == 2 ? 0 : ++this.playerId;
-                this.currentState = CommandState.playerChange;
-                this.player.backColorChange(this.playerId);
+                this.playerId = ((this.playerId + 1) % 3);
+
+                this.message = changePlayer + " " + (this.playerId + 1).ToString();
+                this.startMessageTimer();
+
+                this.currentState = CommandState.PlayerChange;
+                this.integratedPlayer.backColorChange(this.playerId);
             }
         }
 
         private void idleDetected(object sender, EventArgs e)
         {
-            if (this.currentState != CommandState.none)
+            if (this.currentState != CommandState.None)
             {
-                this.currentState = CommandState.none;
+                this.currentState = CommandState.None;
             }
         }
 
@@ -155,35 +196,29 @@ namespace MotionCaptureAudio
             if (e.Status == CalibrationStatus.OK)
             {
                 userGene.SkeletonCapability.StartTracking(e.ID);
-                this.detectionStatus = DetectionStatus.calibrated;
-                this.player.CalibrationCompleted(0);
-                this.player.CalibrationCompleted(1);
-                this.player.CalibrationCompleted(2);
+                this.detectionStatus = DetectionStatus.Calibrated;
+                this.integratedPlayer.CalibrationCompleted();
             }
         }
 
         void user_NewUser(object sender, NewUserEventArgs e)
         {
             Console.WriteLine(String.Format("ユーザ検出: {0}", e.ID));
-            if (this.detectionStatus == DetectionStatus.none)
+            if (this.detectionStatus == DetectionStatus.None)
             {
-                this.detectionStatus = DetectionStatus.detected;
+                this.detectionStatus = DetectionStatus.Detected;
                 userGene.SkeletonCapability.RequestCalibration(e.ID, true);
 
-                this.player.DetectedUser(0);
-                this.player.DetectedUser(1);
-                this.player.DetectedUser(2);
+                this.integratedPlayer.DetectedUser();
             }
         }
 
         private void user_Lost(object sender, UserLostEventArgs e)
         {
             Console.WriteLine(String.Format("ユーザ消失: {0}", e.ID));
-            this.detectionStatus = DetectionStatus.none;
+            this.detectionStatus = DetectionStatus.None;
 
-            this.player.LostUser(0);
-            this.player.LostUser(1);
-            this.player.LostUser(2);
+            this.integratedPlayer.LostUser();
         }
 
         private void ReaderThread()
@@ -206,7 +241,11 @@ namespace MotionCaptureAudio
                             pointDict.Add(skeletonJoint, userGene.SkeletonCapability.GetSkeletonJointPosition(user, skeletonJoint));
                         }
 
-                        this.motionDetector.DetectMotion(user, pointDict);
+                        if (this.detectionStatus == DetectionStatus.Calibrated)
+                        {
+                            this.motionDetector.DetectMotion(user, pointDict);
+                        }
+
                         var pointDic = new List<Object>() { user, pointDict };
 
                         this.Invoke(new Action<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>(drawSkeleton), pointDic.ToArray());
@@ -221,6 +260,20 @@ namespace MotionCaptureAudio
             Graphics g = Graphics.FromImage(this.img);
 
             g.FillRectangle(Brushes.Black, g.VisibleClipBounds);
+
+            if (!string.IsNullOrEmpty(this.message))
+            {
+                var font = new Font("Segoe UI", 48, FontStyle.Bold | FontStyle.Italic);
+                var brush = new SolidBrush(Color.Yellow);
+
+                g.DrawString(this.message, font, brush, PointF.Empty);
+
+                font.Dispose();
+                font = null;
+
+                brush.Dispose();
+                brush = null;
+            }
 
             DrawLine(g, pointDict, SkeletonJoint.Head, SkeletonJoint.Neck);
 
@@ -246,20 +299,6 @@ namespace MotionCaptureAudio
             g.Dispose();
         }
 
-        private void GetJoint(int user, SkeletonJoint joint)
-        {
-            SkeletonJointPosition pos = this.userGene.SkeletonCapability.GetSkeletonJointPosition(user, joint);
-            if (pos.Position.Z == 0)
-            {
-                pos.Confidence = 0;
-            }
-            else
-            {
-                pos.Position = this.depth.ConvertRealWorldToProjective(pos.Position);
-            }
-            this.joints[user][joint] = pos;
-        }
-
         private void DrawLine(Graphics g, Dictionary<SkeletonJoint, SkeletonJointPosition> dict, SkeletonJoint j1, SkeletonJoint j2)
         {
             Point3D pos1 = this.depth.ConvertRealWorldToProjective(dict[j1].Position);
@@ -273,5 +312,7 @@ namespace MotionCaptureAudio
 
             this.pictBox.Invalidate();
         }
+
+        #endregion methods
     }
 }

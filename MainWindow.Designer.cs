@@ -26,7 +26,7 @@
 		private void InitializeComponent()
 		{
             this.panel1 = new System.Windows.Forms.Panel();
-            this.player = new MotionCaptureAudio.Player();
+            this.integratedPlayer = new MotionCaptureAudio.IntegratedPlayer();
             this.pictBox = new System.Windows.Forms.PictureBox();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictBox)).BeginInit();
@@ -34,7 +34,7 @@
             // 
             // panel1
             // 
-            this.panel1.Controls.Add(this.player);
+            this.panel1.Controls.Add(this.integratedPlayer);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Left;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
@@ -44,13 +44,13 @@
             // 
             // player
             // 
-            this.player.BackColor = System.Drawing.Color.Black;
-            this.player.Dock = System.Windows.Forms.DockStyle.Left;
-            this.player.ForeColor = System.Drawing.Color.White;
-            this.player.Location = new System.Drawing.Point(0, 0);
-            this.player.Name = "player";
-            this.player.Size = new System.Drawing.Size(190, 720);
-            this.player.TabIndex = 13;
+            this.integratedPlayer.BackColor = System.Drawing.Color.Black;
+            this.integratedPlayer.Dock = System.Windows.Forms.DockStyle.Left;
+            this.integratedPlayer.ForeColor = System.Drawing.Color.White;
+            this.integratedPlayer.Location = new System.Drawing.Point(0, 0);
+            this.integratedPlayer.Name = "player";
+            this.integratedPlayer.Size = new System.Drawing.Size(190, 720);
+            this.integratedPlayer.TabIndex = 13;
             // 
             // pictBox
             // 
@@ -83,7 +83,7 @@
 
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.PictureBox pictBox;
-        private Player player;
+        private IntegratedPlayer integratedPlayer;
     }
 }
 

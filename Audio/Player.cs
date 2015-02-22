@@ -1,269 +1,195 @@
 ﻿using MotionCaptureAudio.Controller;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using Un4seen.Bass;
 
 namespace MotionCaptureAudio
 {
-    public enum Result
-    {
-        OK,
-        NG,
-    }
-
     public partial class Player : UserControl
     {
-        public bool canPlay = false;
-        public bool[] canUp = new bool[3];
-        public bool[] canDown = new bool[3];
-
-        private List<PlayingStatusControl> playingControls = new List<PlayingStatusControl>();
-        private List<Timer> timers = new List<Timer>();
-        private List<AudioPlayer> audioPlayers;
-
-        public Player()
+        private AudioPlayer audioPlayer = new AudioPlayer();
+        
+        internal Player()
         {
             InitializeComponent();
-            if (!this.DesignMode)
-            {
-                this.createAudioPlayer();
-                this.createPlayingStatusControls();
-                this.initializeComboBox();
-            }
         }
 
-        public void backColorChange(int playerId)
+        internal void Initialize()
         {
-            for (int i = 0; i < 3; i++)
-            {
-                this.playingControls[i].BackColor = (i == playerId) ? Color.Gray : Color.Transparent;
-                this.playingControls[i].trackBarVolume.BackColor = (i == playerId) ? Color.Gray : Color.Black;
-            }
+            this.PlayTime.Text = "00:00 / 00:00";
+            this.PictPlay.Visible = false;
+            this.PictPause.Visible = true;
+            this.trackBarVolume.Value = (int)this.audioPlayer.Volume * 10;
         }
 
-        private void createPlayingStatusControls()
-        {
-            this.playingControls.Add(this.playingStatusControl1);
-            this.playingControls.Add(this.playingStatusControl2);
-            this.playingControls.Add(this.playingStatusControl3);
-
-            var count = 0;
-            this.playingControls.ForEach(e =>
-            {
-                e.PlayTime.Text = "00:00 / 00:00";
-                e.PictPlay.Visible = false;
-                e.PictPause.Visible = true;
-                e.trackBarVolume.Value = (int)this.audioPlayers[count].Volume * 10;
-                count++;
-            });
-        }
-
-        private void createAudioPlayer()
-        {
-            this.audioPlayers = new List<AudioPlayer>() { new AudioPlayer(), new AudioPlayer(), new AudioPlayer() };
-        }
-
-        private void initializeComboBox()
+        private Result initializeInstance(int indexOfDevice, string fileName)
         {
             try
             {
-                foreach (var device in this.audioPlayers[0].GetDevice())
+                var result = this.audioPlayer.InitializeInstance(indexOfDevice, fileName);
+                if (result == Result.OK)
                 {
-                    var dname = device.IsDefault ? "*" : string.Empty;
-                    dname += device.name;
-                    this.comboBoxDevice.Items.Add(dname);
-                    this.comboBoxDevice.SelectedItem = dname;
+                    this.trackBarVolume.Value = (int)(this.audioPlayer.Volume * 10);
                 }
 
-                if (this.comboBoxDevice.Items.Count >= 1)
-                {
-                    this.comboBoxDevice.SelectedIndex = 1;
-                }
-            }
-            catch
-            {
-                return;
-            }
-        }
-
-        private Result initializeInstance(string fileName)
-        {
-            try
-            {
-                foreach (var item in this.audioPlayers)
-                {
-                    var result = item.InitializeInstance(this.comboBoxDevice.SelectedIndex, fileName);
-                    if (result == Result.NG) return result;
-                }
+                return result;
             }
             catch (FileNotFoundException)
             {
-                MessageBox.Show("File not found.");
+                MessageBox.Show("File not found. " + fileName);
                 return Result.NG;
             }
-
-            return Result.OK;
         }
 
-        public void CalibrationCompleted(int userId)
+        internal void BackColorChange(bool isActive)
+        {
+            this.BackColor = isActive ? Color.Gray : Color.Transparent;
+            this.trackBarVolume.BackColor = isActive ? Color.Gray : Color.Black;
+        }
+
+        internal BASS_DEVICEINFO[] GetDevice()
+        {
+            return this.audioPlayer.GetDevice();
+        }
+
+        internal void SetMusicFile(int indexOfdevice)
+        {
+            string fName = @"..\..\music.mp3";
+            this.initializeInstance(indexOfdevice, fName);
+        }
+
+        internal void DetectedUser()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.CalibrationCompleted), userId);
+                this.Invoke(new Action(this.DetectedUser));
                 return;
             }
 
-            this.playingControls[userId].CalibrationCompleted();
+            this.Refresh();
         }
 
-        public void DetectedUser(int userId)
+        internal void CalibrationCompleted()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.DetectedUser), userId);
+                this.Invoke(new Action(this.CalibrationCompleted));
                 return;
             }
 
-            this.playingControls[userId].DetectedUser();
+            this.PictPlay.Visible = true;
+            this.PictPause.Visible = false;
+            this.Refresh();
         }
 
-        public void LostUser(int userId)
+        internal void LostUser()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.LostUser), userId);
+                this.Invoke(new Action(this.LostUser));
                 return;
             }
 
-            this.playingControls[userId].LostUser();
+            this.Pause();
+            this.PictPlay.Visible = false;
+            this.PictPause.Visible = false;
+            this.Refresh();
         }
 
-        public void Play(int userId)
+        internal void Play()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.Play), userId);
+                this.Invoke(new Action(this.Play));
                 return;
             }
 
-            this.audioPlayers[userId].Volume = float.Parse(this.playingControls[userId].trackBarVolume.Value.ToString()) / 10;
-            this.playingControls[userId].Play();
-            this.startTimer(userId);
-            this.audioPlayers[userId].Play();
+            this.PictPlay.Visible = false;
+            this.PictPause.Visible = true;
+            this.Refresh();
+
+            this.audioPlayer.Volume = float.Parse(this.trackBarVolume.Value.ToString()) / 10;
+            this.audioPlayer.Play();
+
+            this.timer.Start();
         }
 
-        public void Pause(int userId)
+        internal void Pause()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.Pause), userId);
+                this.Invoke(new Action(this.Pause));
                 return;
             }
 
-            this.playingControls[userId].Pause();
-            this.audioPlayers[userId].Pause();
+            this.PictPlay.Visible = true;
+            this.PictPause.Visible = false;
+            this.Refresh();
 
-            this.timers[userId].Stop();
+            this.audioPlayer.Pause();
+
+            this.timer.Stop();
         }
 
-        public void PlayPauseChange(int userId)
+        internal void PlayPauseChange()
         {
-            if (this.audioPlayers[userId].PlayState == PlayState.Playing)
+            if (this.InvokeRequired)
             {
-                this.Pause(userId);
+                this.Invoke(new Action(this.PlayPauseChange));
+                return;
+            }
+
+            if (this.audioPlayer.PlayState == PlayState.Playing)
+            {
+                this.Pause();
             }
             else
             {
-                this.Play(userId);
+                this.Play();
             }
         }
 
-        public void VolumeUp(int playerId)
+        internal void VolumeUp()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.VolumeUp), playerId);
+                this.Invoke(new Action(this.VolumeUp));
                 return;
             }
 
-            this.audioPlayers[playerId].Volume += 0.1f;
-            this.playingControls[playerId].trackBarVolume.Value += 1;
-            this.canUp[playerId] = this.audioPlayers[playerId].Volume < 1.0;
-            this.canDown[playerId] = true;
+            if (Math.Floor(this.audioPlayer.Volume * 10) > 9) return;
+            
+            this.audioPlayer.Volume += 0.1f;
+            this.trackBarVolume.Value += 1;
         }
 
-        public void VolumeDown(int playerId)
+        internal void VolumeDown()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.VolumeDown), playerId);
+                this.Invoke(new Action(this.VolumeDown));
                 return;
             }
 
-            this.audioPlayers[playerId].Volume -= 0.1f;
-            this.playingControls[playerId].trackBarVolume.Value -= 1;
-            this.canDown[playerId] = this.audioPlayers[playerId].Volume >= 0.1;
-            this.canUp[playerId] = true;
+            if (Math.Floor(this.audioPlayer.Volume * 10) < 1) return;
+
+            this.audioPlayer.Volume -= 0.1f;
+            this.trackBarVolume.Value -= 1;
         }
 
-        private void startTimer(int userId)
+        internal PlayState GetPlayState()
         {
-            this.timers[userId].Start();
+            return this.audioPlayer.PlayState;
         }
 
         private void timer_Tick(object sender, EventArgs e)
         {
-            this.playingControls[0].PlayTime.Text
-                = this.audioPlayers[0].CurrentTime.ToString(@"mm\:ss")
+            this.PlayTime.Text
+                = this.audioPlayer.CurrentTime.ToString(@"mm\:ss")
                 + "/"
-                + this.audioPlayers[0].Duration.ToString(@"mm\:ss");
-        }
-
-        private void timer2_Tick(object sender, EventArgs e)
-        {
-            this.playingControls[1].PlayTime.Text
-                = this.audioPlayers[1].CurrentTime.ToString(@"mm\:ss")
-                + "/"
-                + this.audioPlayers[1].Duration.ToString(@"mm\:ss");
-
-        }
-
-        private void timer3_Tick(object sender, EventArgs e)
-        {
-            this.playingControls[2].PlayTime.Text
-                = this.audioPlayers[2].CurrentTime.ToString(@"mm\:ss")
-                + "/"
-                + this.audioPlayers[2].Duration.ToString(@"mm\:ss");
-        }
-
-        private void setMusicFile()
-        {
-            string path = Application.ExecutablePath;
-            string fName = path.Remove(path.LastIndexOf("\\")) +"\\BigBridge.mp3";
-            if (this.initializeInstance(fName) != Result.OK) return;
-            this.canPlay = true;
-        }
-
-        private void Player_Load(object sender, EventArgs e)
-        {
-            if (!this.DesignMode)
-            {
-                this.setMusicFile();
-                this.backColorChange(0);
-
-                this.timers.Add(this.timer1);
-                this.timers.Add(this.timer2);
-                this.timers.Add(this.timer3);
-
-                for(int i = 0; i < 3; i++)
-                {
-                    this.playingControls[i].trackBarVolume.Value = (int)(this.audioPlayers[i].Volume * 10);
-                    this.canUp[i] = this.canPlay && this.audioPlayers[i].Volume < 1.0;
-                    this.canDown[i] = this.canPlay && this.audioPlayers[i].Volume >= 0.1;
-                }
-            }
+                + this.audioPlayer.Duration.ToString(@"mm\:ss");
         }
     }
 }

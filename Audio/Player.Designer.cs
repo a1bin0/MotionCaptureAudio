@@ -2,12 +2,12 @@
 {
     partial class Player
     {
-        /// <summary>
+        /// <summary> 
         /// 必要なデザイナー変数です。
         /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
+        /// <summary> 
         /// 使用中のリソースをすべてクリーンアップします。
         /// </summary>
         /// <param name="disposing">マネージ リソースが破棄される場合 true、破棄されない場合は false です。</param>
@@ -20,100 +20,94 @@
             base.Dispose(disposing);
         }
 
-        #region Windows フォーム デザイナーで生成されたコード
+        #region コンポーネント デザイナーで生成されたコード
 
-        /// <summary>
-        /// デザイナー サポートに必要なメソッドです。このメソッドの内容を
+        /// <summary> 
+        /// デザイナー サポートに必要なメソッドです。このメソッドの内容を 
         /// コード エディターで変更しないでください。
         /// </summary>
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.timer1 = new System.Windows.Forms.Timer(this.components);
-            this.timer2 = new System.Windows.Forms.Timer(this.components);
-            this.timer3 = new System.Windows.Forms.Timer(this.components);
-            this.comboBoxDevice = new System.Windows.Forms.ComboBox();
-            this.playingStatusControl3 = new MotionCaptureAudio.PlayingStatusControl();
-            this.playingStatusControl2 = new MotionCaptureAudio.PlayingStatusControl();
-            this.playingStatusControl1 = new MotionCaptureAudio.PlayingStatusControl();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Player));
+            this.PictPause = new System.Windows.Forms.PictureBox();
+            this.PictPlay = new System.Windows.Forms.PictureBox();
+            this.PlayTime = new System.Windows.Forms.Label();
+            this.trackBarVolume = new System.Windows.Forms.TrackBar();
+            this.timer = new System.Windows.Forms.Timer(this.components);
+            ((System.ComponentModel.ISupportInitialize)(this.PictPause)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.PictPlay)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarVolume)).BeginInit();
             this.SuspendLayout();
             // 
-            // timer1
+            // PictPause
             // 
-            this.timer1.Interval = 500;
-            this.timer1.Tick += new System.EventHandler(this.timer_Tick);
+            this.PictPause.BackColor = System.Drawing.Color.Transparent;
+            this.PictPause.Image = ((System.Drawing.Image)(resources.GetObject("PictPause.Image")));
+            this.PictPause.Location = new System.Drawing.Point(13, 126);
+            this.PictPause.Name = "PictPause";
+            this.PictPause.Size = new System.Drawing.Size(90, 80);
+            this.PictPause.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.PictPause.TabIndex = 23;
+            this.PictPause.TabStop = false;
+            this.PictPause.Visible = false;
             // 
-            // timer2
+            // PictPlay
             // 
-            this.timer2.Interval = 500;
-            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
+            this.PictPlay.BackColor = System.Drawing.Color.Transparent;
+            this.PictPlay.Image = ((System.Drawing.Image)(resources.GetObject("PictPlay.Image")));
+            this.PictPlay.Location = new System.Drawing.Point(13, 40);
+            this.PictPlay.Name = "PictPlay";
+            this.PictPlay.Size = new System.Drawing.Size(90, 80);
+            this.PictPlay.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.PictPlay.TabIndex = 21;
+            this.PictPlay.TabStop = false;
+            this.PictPlay.Visible = false;
             // 
-            // timer3
+            // PlayTime
             // 
-            this.timer3.Interval = 500;
-            this.timer3.Tick += new System.EventHandler(this.timer3_Tick);
+            this.PlayTime.AutoSize = true;
+            this.PlayTime.Font = new System.Drawing.Font("MS UI Gothic", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
+            this.PlayTime.Location = new System.Drawing.Point(10, 15);
+            this.PlayTime.Name = "PlayTime";
+            this.PlayTime.Size = new System.Drawing.Size(84, 13);
+            this.PlayTime.TabIndex = 2;
+            this.PlayTime.Text = "00:00 / 01:23";
             // 
-            // comboBoxDevice
+            // trackBarVolume
             // 
-            this.comboBoxDevice.Font = new System.Drawing.Font("MS UI Gothic", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
-            this.comboBoxDevice.FormattingEnabled = true;
-            this.comboBoxDevice.Location = new System.Drawing.Point(3, 666);
-            this.comboBoxDevice.Name = "comboBoxDevice";
-            this.comboBoxDevice.Size = new System.Drawing.Size(156, 21);
-            this.comboBoxDevice.TabIndex = 22;
-            // 
-            // playingStatusControl3
-            // 
-            this.playingStatusControl3.BackColor = System.Drawing.Color.Transparent;
-            this.playingStatusControl3.Dock = System.Windows.Forms.DockStyle.Top;
-            this.playingStatusControl3.Location = new System.Drawing.Point(0, 440);
-            this.playingStatusControl3.Name = "playingStatusControl3";
-            this.playingStatusControl3.Size = new System.Drawing.Size(162, 220);
-            this.playingStatusControl3.TabIndex = 21;
-            // 
-            // playingStatusControl2
-            // 
-            this.playingStatusControl2.BackColor = System.Drawing.Color.Transparent;
-            this.playingStatusControl2.Dock = System.Windows.Forms.DockStyle.Top;
-            this.playingStatusControl2.Location = new System.Drawing.Point(0, 220);
-            this.playingStatusControl2.Name = "playingStatusControl2";
-            this.playingStatusControl2.Size = new System.Drawing.Size(162, 220);
-            this.playingStatusControl2.TabIndex = 20;
-            // 
-            // playingStatusControl1
-            // 
-            this.playingStatusControl1.BackColor = System.Drawing.Color.Transparent;
-            this.playingStatusControl1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.playingStatusControl1.Location = new System.Drawing.Point(0, 0);
-            this.playingStatusControl1.Name = "playingStatusControl1";
-            this.playingStatusControl1.Size = new System.Drawing.Size(162, 220);
-            this.playingStatusControl1.TabIndex = 19;
+            this.trackBarVolume.BackColor = System.Drawing.SystemColors.MenuText;
+            this.trackBarVolume.Location = new System.Drawing.Point(109, 0);
+            this.trackBarVolume.Name = "trackBarVolume";
+            this.trackBarVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
+            this.trackBarVolume.Size = new System.Drawing.Size(45, 217);
+            this.trackBarVolume.TabIndex = 24;
+            this.trackBarVolume.Value = 3;
             // 
             // Player
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.BackColor = System.Drawing.Color.Black;
-            this.Controls.Add(this.comboBoxDevice);
-            this.Controls.Add(this.playingStatusControl3);
-            this.Controls.Add(this.playingStatusControl2);
-            this.Controls.Add(this.playingStatusControl1);
-            this.ForeColor = System.Drawing.Color.White;
+            this.BackColor = System.Drawing.Color.Transparent;
+            this.Controls.Add(this.trackBarVolume);
+            this.Controls.Add(this.PlayTime);
+            this.Controls.Add(this.PictPause);
+            this.Controls.Add(this.PictPlay);
             this.Name = "Player";
-            this.Size = new System.Drawing.Size(162, 709);
-            this.Load += new System.EventHandler(this.Player_Load);
+            this.Size = new System.Drawing.Size(160, 220);
+            ((System.ComponentModel.ISupportInitialize)(this.PictPause)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.PictPlay)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.trackBarVolume)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Timer timer1;
-        private PlayingStatusControl playingStatusControl1;
-        private PlayingStatusControl playingStatusControl2;
-        private System.Windows.Forms.Timer timer2;
-        private System.Windows.Forms.Timer timer3;
-        private PlayingStatusControl playingStatusControl3;
-        private System.Windows.Forms.ComboBox comboBoxDevice;
+        internal System.Windows.Forms.Label PlayTime;
+        internal System.Windows.Forms.PictureBox PictPause;
+        internal System.Windows.Forms.PictureBox PictPlay;
+        public System.Windows.Forms.TrackBar trackBarVolume;
+        private System.Windows.Forms.Timer timer;
     }
 }
-
