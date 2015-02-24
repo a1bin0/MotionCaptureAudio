@@ -14,6 +14,12 @@ namespace MotionCaptureAudio
     {
         #region instance fields
 
+        private const string VolumeUp = "Volume up ↑↑";
+        private const string VolumeDown = "Volume down ↓↓";
+        private const string PlayMusic = "Play music!!";
+        private const string PauseMusic = "Pause music!!";
+        private const string ChangePlayer = "Player changed!!";
+
         private Bitmap img;
 
         private Context context;
@@ -23,7 +29,8 @@ namespace MotionCaptureAudio
         private Dispatcher dispatcher = Dispatcher.CurrentDispatcher;
         private MotionDetector motionDetector;
         private int playerId = 0;
-
+        private System.Windows.Forms.Timer messageTimer = null;
+        private string message = string.Empty;
         private CommandState currentState = CommandState.none;
         private Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>> joints = new Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>();
 
@@ -96,10 +103,36 @@ namespace MotionCaptureAudio
             this.motionDetector.IdleDetected += this.idleDetected;
         }
 
+        private void startMessageTimer()
+        {
+            if (this.messageTimer != null && this.messageTimer.Enabled)
+            {
+                this.messageTimer.Stop();
+                this.messageTimer.Dispose();
+            }
+
+            this.messageTimer = new System.Windows.Forms.Timer();
+            this.messageTimer.Tick += this.clearMessage;
+            this.messageTimer.Interval = 2000;
+
+            this.messageTimer.Start();
+        }
+
+        private void clearMessage(object sender, EventArgs e)
+        {
+            this.messageTimer.Stop();
+            this.message = string.Empty;
+
+            this.messageTimer.Dispose();
+        }
+
         private void leftHandDownDetected(object sender, EventArgs e)
         {
             if (this.player.canDown[this.playerId] && this.currentState != CommandState.volumeDown)
             {
+                this.message = VolumeDown;
+                this.startMessageTimer();
+
                 this.player.VolumeDown(this.playerId);
                 this.currentState = CommandState.volumeDown;
             }
@@ -118,6 +151,9 @@ namespace MotionCaptureAudio
         {
             if (this.player.canUp[this.playerId] && this.currentState != CommandState.volumeUp)
             {
+                this.message = VolumeUp;
+                this.startMessageTimer();
+
                 this.player.VolumeUp(this.playerId);
                 this.currentState = CommandState.volumeUp;
             }
@@ -127,6 +163,9 @@ namespace MotionCaptureAudio
         {
             if (this.player.canPlay && this.currentState != CommandState.playPausecChange)
             {
+                this.message = (this.player.IsPlaying(this.playerId)) ? PauseMusic : PlayMusic;
+                this.startMessageTimer();
+
                 this.player.PlayPauseChange(this.playerId);
                 this.currentState = CommandState.playPausecChange;
             }
@@ -136,6 +175,9 @@ namespace MotionCaptureAudio
         {
             if (this.player.canPlay && this.currentState != CommandState.playerChange)
             {
+                this.message = ChangePlayer;
+                this.startMessageTimer();
+
                 this.playerId = this.playerId == 2 ? 0 : ++this.playerId;
                 this.currentState = CommandState.playerChange;
                 this.player.backColorChange(this.playerId);
@@ -209,18 +251,31 @@ namespace MotionCaptureAudio
                         this.motionDetector.DetectMotion(user, pointDict);
                         var pointDic = new List<Object>() { user, pointDict };
 
-                        this.Invoke(new Action<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>(drawSkeleton), pointDic.ToArray());
+                        this.Invoke(new Action<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>(draw), pointDic.ToArray());
                         this.pictBox.Invalidate();
                     }
                 }));
             }
         }
 
-        private void drawSkeleton(int user, Dictionary<SkeletonJoint, SkeletonJointPosition> pointDict)
+        private void draw(int user, Dictionary<SkeletonJoint, SkeletonJointPosition> pointDict)
         {
             Graphics g = Graphics.FromImage(this.img);
-
             g.FillRectangle(Brushes.Black, g.VisibleClipBounds);
+
+            if (!string.IsNullOrEmpty(this.message))
+            {       
+                var font = new Font("Segoe UI", 48, FontStyle.Bold | FontStyle.Italic);
+                var brush = new SolidBrush(Color.Yellow);
+
+                g.DrawString(this.message, font, brush, PointF.Empty);
+
+                font.Dispose();
+                font = null;
+
+                brush.Dispose();
+                brush = null;
+            }
 
             DrawLine(g, pointDict, SkeletonJoint.Head, SkeletonJoint.Neck);
 

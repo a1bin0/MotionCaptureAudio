@@ -265,5 +265,10 @@ namespace MotionCaptureAudio
                 }
             }
         }
+
+        public bool IsPlaying(int playerId)
+        {
+            return this.audioPlayers[playerId].PlayState == PlayState.Playing;
+        }
     }
 }
