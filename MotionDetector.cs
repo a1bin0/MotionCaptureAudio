@@ -34,7 +34,7 @@ namespace MotionCaptureAudio
 
             if (positions.Count >= this.positionMaxCount)
             {
-                if (positions.All(item => this.isRightUp(positions)) && positions.All(item => this.isLeftUp(positions)))
+                if (positions.All(item => this.isRightOverSholder(positions)) && positions.All(item => this.isLeftOverSholder(positions)))
                 {
                     this.BothHandUpDetected(this, EventArgs.Empty);
                 }
@@ -154,6 +154,48 @@ namespace MotionCaptureAudio
                 Point3D rightHip = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHip].Position);
 
                 if (rightHand.Y < rightHip.Y) return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 左手が左肩より上にあるか
+        /// </summary>
+        /// <param name="skeleton"></param>
+        /// <returns></returns>
+        private bool isLeftOverSholder(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
+        {
+            for (int i = 0; i < this.positionMaxCount; i++)
+            {
+                if (positions[i][SkeletonJoint.LeftHand].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.LeftShoulder].Confidence < this.confidenceBase) return false;
+
+                Point3D leftHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
+                Point3D leftSholder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftShoulder].Position);
+
+                if (leftHand.Y > leftSholder.Y) return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 右手が右肩より上にあるか
+        /// </summary>
+        /// <param name="skeleton"></param>
+        /// <returns></returns>
+        private bool isRightOverSholder(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
+        {
+            for (int i = 0; i < this.positionMaxCount; i++)
+            {
+                if (positions[i][SkeletonJoint.RightHand].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.RightShoulder].Confidence < this.confidenceBase) return false;
+
+                Point3D rightHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHand].Position);
+                Point3D rightSholder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightShoulder].Position);
+
+                if (rightHand.Y > rightSholder.Y) return false;
             }
 
             return true;
