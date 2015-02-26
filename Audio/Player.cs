@@ -88,14 +88,24 @@ namespace MotionCaptureAudio
             }
         }
 
-        private Result initializeInstance(string fileName)
+        private Result initializeInstance()
         {
             try
             {
+                string path = Application.ExecutablePath;
+                string fName1 = path.Remove(path.LastIndexOf("\\")) + "\\a.mp3";
+                string fName2 = path.Remove(path.LastIndexOf("\\")) + "\\b.mp3";
+                string fName3 = path.Remove(path.LastIndexOf("\\")) + "\\c.mp3";
+                string[] fName = { fName1, fName2, fName3 };
+
+                int count = 0;
+
                 foreach (var item in this.audioPlayers)
                 {
-                    var result = item.InitializeInstance(this.comboBoxDevice.SelectedIndex, fileName);
+                    var result = item.InitializeInstance(this.comboBoxDevice.SelectedIndex, fName[count]);
                     if (result == Result.NG) return result;
+
+                    count++;
                 }
             }
             catch (FileNotFoundException)
@@ -240,9 +250,7 @@ namespace MotionCaptureAudio
 
         private void setMusicFile()
         {
-            string path = Application.ExecutablePath;
-            string fName = path.Remove(path.LastIndexOf("\\")) +"\\BigBridge.mp3";
-            if (this.initializeInstance(fName) != Result.OK) return;
+            if (this.initializeInstance() != Result.OK) return;
             this.canPlay = true;
         }
 
