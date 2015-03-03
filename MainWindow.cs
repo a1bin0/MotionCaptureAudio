@@ -30,6 +30,7 @@ namespace MotionCaptureAudio
         private MotionDetector motionDetector;
         private int playerId = 0;
         private System.Windows.Forms.Timer messageTimer = null;
+        private System.Windows.Forms.Timer countDownTimer = null;
         private string message = string.Empty;
         private CommandState currentState = CommandState.none;
         private Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>> joints = new Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>();
@@ -46,6 +47,7 @@ namespace MotionCaptureAudio
             volumeUp,
             volumeDown,
             playerChange,
+            appEnd,
         }
 
         /// <summary>
@@ -118,6 +120,38 @@ namespace MotionCaptureAudio
             this.messageTimer.Start();
         }
 
+        private void startCountDownTimer()
+        {
+            if (this.countDownTimer != null && this.countDownTimer.Enabled)
+            {
+                this.countDownTimer.Stop();
+                this.countDownTimer.Dispose();
+            }
+
+            this.message = "Application terminate...3";
+
+            this.countDownTimer = new System.Windows.Forms.Timer();
+            this.countDownTimer.Tick += this.countDown;
+            this.countDownTimer.Interval = 1000;
+
+            this.countDownTimer.Start();
+        }
+
+        private void countDown(object sender, EventArgs e)
+        {
+            var count = int.Parse(this.message.Substring(this.message.Length - 1, 1));
+            count--;
+            if(count == 0)
+            {
+                this.countDownTimer.Stop();
+                this.countDownTimer.Dispose();
+
+                this.Close();
+            }
+
+            this.message = "Application terminate..." + count.ToString();
+        }
+
         private void clearMessage(object sender, EventArgs e)
         {
             this.messageTimer.Stop();
@@ -126,9 +160,20 @@ namespace MotionCaptureAudio
             this.messageTimer.Dispose();
         }
 
+        private void bothHandUpDetected(object sender, EventArgs e)
+        {
+            this.currentState = CommandState.appEnd;
+
+            this.player.Pause(0);
+            this.player.Pause(1);
+            this.player.Pause(2);
+
+            this.startCountDownTimer();
+        }
+
         private void leftHandDownDetected(object sender, EventArgs e)
         {
-            if (this.player.canDown[this.playerId] && this.currentState != CommandState.volumeDown)
+            if (this.player.canDown[this.playerId] && this.currentState != CommandState.volumeDown && this.currentState != CommandState.appEnd)
             {
                 this.message = VolumeDown;
                 this.startMessageTimer();
@@ -138,18 +183,9 @@ namespace MotionCaptureAudio
             }
         }
 
-        private void bothHandUpDetected(object sender, EventArgs e)
-        {
-            this.player.Pause(0);
-            this.player.Pause(1);
-            this.player.Pause(2);
-
-            this.Close();
-        }
-
         private void leftHandUpDetected(object sender, EventArgs e)
         {
-            if (this.player.canUp[this.playerId] && this.currentState != CommandState.volumeUp)
+            if (this.player.canUp[this.playerId] && this.currentState != CommandState.volumeUp && this.currentState != CommandState.appEnd)
             {
                 this.message = VolumeUp;
                 this.startMessageTimer();
@@ -161,7 +197,7 @@ namespace MotionCaptureAudio
 
         private void rightHandUpDetected(object sender, EventArgs e)
         {
-            if (this.player.canPlay && this.currentState != CommandState.playPausecChange)
+            if (this.player.canPlay && this.currentState != CommandState.playPausecChange && this.currentState != CommandState.appEnd)
             {
                 this.message = (this.player.IsPlaying(this.playerId)) ? PauseMusic : PlayMusic;
                 this.startMessageTimer();
@@ -173,7 +209,7 @@ namespace MotionCaptureAudio
 
         private void rightHandDownDetected(object sender, EventArgs e)
         {
-            if (this.player.canPlay && this.currentState != CommandState.playerChange)
+            if (this.player.canPlay && this.currentState != CommandState.playerChange && this.currentState != CommandState.appEnd)
             {
                 this.message = ChangePlayer;
                 this.startMessageTimer();
@@ -186,7 +222,7 @@ namespace MotionCaptureAudio
 
         private void idleDetected(object sender, EventArgs e)
         {
-            if (this.currentState != CommandState.none)
+            if (this.currentState != CommandState.none && this.currentState != CommandState.appEnd)
             {
                 this.currentState = CommandState.none;
             }
@@ -264,7 +300,7 @@ namespace MotionCaptureAudio
             g.FillRectangle(Brushes.Black, g.VisibleClipBounds);
 
             if (!string.IsNullOrEmpty(this.message))
-            {       
+            {
                 var font = new Font("Segoe UI", 48, FontStyle.Bold | FontStyle.Italic);
                 var brush = new SolidBrush(Color.Yellow);
 
@@ -277,26 +313,29 @@ namespace MotionCaptureAudio
                 brush = null;
             }
 
-            DrawLine(g, pointDict, SkeletonJoint.Head, SkeletonJoint.Neck);
+            if (this.currentState != CommandState.appEnd)
+            {
+                DrawLine(g, pointDict, SkeletonJoint.Head, SkeletonJoint.Neck);
 
-            DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightHip);
-            DrawLine(g, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.LeftHip);
+                DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightHip);
+                DrawLine(g, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.LeftHip);
 
-            DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.LeftElbow);
-            DrawLine(g, pointDict, SkeletonJoint.LeftElbow, SkeletonJoint.LeftHand);
+                DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.LeftElbow);
+                DrawLine(g, pointDict, SkeletonJoint.LeftElbow, SkeletonJoint.LeftHand);
 
-            DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightShoulder);
-            DrawLine(g, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.RightElbow);
-            DrawLine(g, pointDict, SkeletonJoint.RightElbow, SkeletonJoint.RightHand);
+                DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightShoulder);
+                DrawLine(g, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.RightElbow);
+                DrawLine(g, pointDict, SkeletonJoint.RightElbow, SkeletonJoint.RightHand);
 
-            DrawLine(g, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.RightHip);
-            DrawLine(g, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.LeftKnee);
-            DrawLine(g, pointDict, SkeletonJoint.RightHip, SkeletonJoint.RightKnee);
+                DrawLine(g, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.RightHip);
+                DrawLine(g, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.LeftKnee);
+                DrawLine(g, pointDict, SkeletonJoint.RightHip, SkeletonJoint.RightKnee);
 
-            DrawLine(g, pointDict, SkeletonJoint.LeftKnee, SkeletonJoint.LeftFoot);
-            DrawLine(g, pointDict, SkeletonJoint.RightKnee, SkeletonJoint.RightFoot);
+                DrawLine(g, pointDict, SkeletonJoint.LeftKnee, SkeletonJoint.LeftFoot);
+                DrawLine(g, pointDict, SkeletonJoint.RightKnee, SkeletonJoint.RightFoot);
 
-            this.pictBox.BackgroundImage = this.img;
+                this.pictBox.BackgroundImage = this.img;
+            }
 
             g.Dispose();
         }
