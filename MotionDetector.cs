@@ -38,19 +38,19 @@ namespace MotionCaptureAudio
                 {
                     this.BothHandUpDetected(this, EventArgs.Empty);
                 }
-                if (positions.All(item => this.isRightUp(positions)))
+                if (positions.All(item => this.isLeftUp(positions)))
                 {
                     this.RightHandUpDetected(this, EventArgs.Empty);
                 }
-                else if (positions.All(item => this.isLeftUp(positions)))
+                else if (positions.All(item => this.isRightUp(positions)))
                 {
                     this.LeftHandUpDetected(this, EventArgs.Empty);
                 }
-                else if (positions.All(item => this.isLeftDown(positions)))
+                else if (positions.All(item => this.isRightDown(positions)))
                 {
                     this.LeftHandDownDetected(this, EventArgs.Empty);
                 }
-                else if (positions.All(item => this.isRightDown(positions)))
+                else if (positions.All(item => this.isLeftDown(positions)))
                 {
                     this.RightHandDownDetected(this, EventArgs.Empty);
                 }

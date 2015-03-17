@@ -71,7 +71,7 @@ namespace MotionCaptureAudio
             this.img = new Bitmap(this.pictBox.Width, this.pictBox.Height);
             this.context = Context.CreateFromXmlFile(@"Config.xml", out this.scriptNode);
             this.depth = context.FindExistingNode(NodeType.Depth) as DepthGenerator;
-            this.context.GlobalMirror = true;
+            this.context.GlobalMirror = false;
             this.setupMotiondetector();
 
             this.userGene = new UserGenerator(context);

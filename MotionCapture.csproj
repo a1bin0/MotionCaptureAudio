@@ -79,6 +79,11 @@
     <Compile Include="..\Res\AssemblyInfo-OpenNI.cs">
       <Link>AssemblyInfo-OpenNI.cs</Link>
     </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="UserPlayingStatusForm.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -86,12 +91,14 @@
       <DependentUpon>UserPlayingStatusForm.cs</DependentUpon>
     </Compile>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Include="UserPlayingStatusForm.resx">
       <DependentUpon>UserPlayingStatusForm.cs</DependentUpon>
