@@ -15,9 +15,12 @@ namespace MotionCaptureAudio
 
     public partial class Player : UserControl
     {
+        private const int playerCount = 3;
+        private const float maxVolume = 10f;
+
         public bool canPlay = false;
-        public bool[] canUp = new bool[3];
-        public bool[] canDown = new bool[3];
+        public bool[] canUp = new bool[playerCount];
+        public bool[] canDown = new bool[playerCount];
 
         private List<PlayingStatusControl> playingControls = new List<PlayingStatusControl>();
         private List<Timer> timers = new List<Timer>();
@@ -36,7 +39,7 @@ namespace MotionCaptureAudio
 
         public void backColorChange(int playerId)
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < playerCount; i++)
             {
                 this.playingControls[i].BackColor = (i == playerId) ? Color.Gray : Color.Transparent;
                 this.playingControls[i].trackBarVolume.BackColor = (i == playerId) ? Color.Gray : Color.Black;
@@ -159,6 +162,7 @@ namespace MotionCaptureAudio
             }
 
             this.audioPlayers[userId].Volume = float.Parse(this.playingControls[userId].trackBarVolume.Value.ToString()) / 10;
+
             this.playingControls[userId].Play();
             this.startTimer(userId);
             this.audioPlayers[userId].Play();
@@ -180,7 +184,7 @@ namespace MotionCaptureAudio
 
         public void PlayPauseChange(int userId)
         {
-            if (this.audioPlayers[userId].PlayState == PlayState.Playing)
+            if (this.IsPlaying(userId))
             {
                 this.Pause(userId);
             }
@@ -198,9 +202,9 @@ namespace MotionCaptureAudio
                 return;
             }
 
-            this.audioPlayers[playerId].Volume += 0.1f;
+            this.audioPlayers[playerId].Volume += maxVolume / 10;
             this.playingControls[playerId].trackBarVolume.Value += 1;
-            this.canUp[playerId] = this.audioPlayers[playerId].Volume < 1.0;
+            this.canUp[playerId] = this.audioPlayers[playerId].Volume < maxVolume;
             this.canDown[playerId] = true;
         }
 
@@ -212,9 +216,9 @@ namespace MotionCaptureAudio
                 return;
             }
 
-            this.audioPlayers[playerId].Volume -= 0.1f;
+            this.audioPlayers[playerId].Volume -= maxVolume / 10;
             this.playingControls[playerId].trackBarVolume.Value -= 1;
-            this.canDown[playerId] = this.audioPlayers[playerId].Volume >= 0.1;
+            this.canDown[playerId] = this.audioPlayers[playerId].Volume >= maxVolume / 10;
             this.canUp[playerId] = true;
         }
 
@@ -265,11 +269,11 @@ namespace MotionCaptureAudio
                 this.timers.Add(this.timer2);
                 this.timers.Add(this.timer3);
 
-                for(int i = 0; i < 3; i++)
+                for (int i = 0; i < playerCount; i++)
                 {
                     this.playingControls[i].trackBarVolume.Value = (int)(this.audioPlayers[i].Volume * 10);
-                    this.canUp[i] = this.canPlay && this.audioPlayers[i].Volume < 1.0;
-                    this.canDown[i] = this.canPlay && this.audioPlayers[i].Volume >= 0.1;
+                    this.canUp[i] = this.canPlay && this.audioPlayers[i].Volume < maxVolume;
+                    this.canDown[i] = this.canPlay && this.audioPlayers[i].Volume >= maxVolume / 10;
                 }
             }
         }
@@ -277,6 +281,16 @@ namespace MotionCaptureAudio
         public bool IsPlaying(int playerId)
         {
             return this.audioPlayers[playerId].PlayState == PlayState.Playing;
+        }
+
+        private bool existActivePlayer()
+        {
+            foreach (var item in this.audioPlayers)
+            {
+                if (item.PlayState == PlayState.Playing) return true;
+            }
+
+            return false;
         }
     }
 }

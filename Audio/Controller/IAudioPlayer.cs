@@ -45,7 +45,7 @@ namespace MotionCaptureAudio.Controller
         /// 演奏残り時間を取得します。
         /// </summary>
         TimeSpan RemainedTime { get; }
- 
+
         /// <summary>
         /// 音楽再生の状態を取得します。
         /// </summary>
