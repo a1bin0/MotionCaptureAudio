@@ -162,13 +162,16 @@ namespace MotionCaptureAudio
 
         private void bothHandUpDetected(object sender, EventArgs e)
         {
-            this.currentState = CommandState.appEnd;
+            if (this.currentState != CommandState.appEnd)
+            {
+                this.currentState = CommandState.appEnd;
 
-            this.player.Pause(0);
-            this.player.Pause(1);
-            this.player.Pause(2);
+                this.player.Pause(0);
+                this.player.Pause(1);
+                this.player.Pause(2);
 
-            this.startCountDownTimer();
+                this.startCountDownTimer();
+            }
         }
 
         private void leftHandDownDetected(object sender, EventArgs e)
