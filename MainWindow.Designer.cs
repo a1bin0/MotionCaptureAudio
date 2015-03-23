@@ -27,9 +27,9 @@
 		{
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.panel1 = new System.Windows.Forms.Panel();
-            this.player = new MotionCaptureAudio.Player();
             this.pictBox = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
+            this.player = new MotionCaptureAudio.Player();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -44,16 +44,6 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(191, 720);
             this.panel1.TabIndex = 1;
-            // 
-            // player
-            // 
-            this.player.BackColor = System.Drawing.Color.Black;
-            this.player.Dock = System.Windows.Forms.DockStyle.Left;
-            this.player.ForeColor = System.Drawing.Color.White;
-            this.player.Location = new System.Drawing.Point(0, 0);
-            this.player.Name = "player";
-            this.player.Size = new System.Drawing.Size(190, 720);
-            this.player.TabIndex = 13;
             // 
             // pictBox
             // 
@@ -76,6 +66,16 @@
             this.pictureBox1.TabIndex = 3;
             this.pictureBox1.TabStop = false;
             // 
+            // player
+            // 
+            this.player.BackColor = System.Drawing.Color.Black;
+            this.player.Dock = System.Windows.Forms.DockStyle.Left;
+            this.player.ForeColor = System.Drawing.Color.White;
+            this.player.Location = new System.Drawing.Point(0, 0);
+            this.player.Name = "player";
+            this.player.Size = new System.Drawing.Size(190, 720);
+            this.player.TabIndex = 13;
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -88,7 +88,6 @@
             this.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.Name = "MainWindow";
             this.Text = "mca";
-            this.TopMost = true;
             this.panel1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.pictBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();

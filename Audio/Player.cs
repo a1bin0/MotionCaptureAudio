@@ -17,13 +17,13 @@ namespace MotionCaptureAudio
     {
         private const int playerCount = 3;
         private const float maxVolume = 10f;
+        private TimeSpan currentTime;
 
         public bool canPlay = false;
         public bool[] canUp = new bool[playerCount];
         public bool[] canDown = new bool[playerCount];
 
         private List<PlayingStatusControl> playingControls = new List<PlayingStatusControl>();
-        private List<Timer> timers = new List<Timer>();
         private List<AudioPlayer> audioPlayers;
 
         public Player()
@@ -61,6 +61,8 @@ namespace MotionCaptureAudio
                 e.trackBarVolume.Value = (int)this.audioPlayers[count].Volume * 10;
                 count++;
             });
+
+            this.currentTime = new TimeSpan(0, 0, 0);
         }
 
         private void createAudioPlayer()
@@ -163,8 +165,15 @@ namespace MotionCaptureAudio
 
             this.audioPlayers[userId].Volume = float.Parse(this.playingControls[userId].trackBarVolume.Value.ToString()) / 10;
 
+            if (!this.existActivePlayer())
+            {
+                this.timer1.Start();
+            }
+
+            this.setCurrentTime();
+
             this.playingControls[userId].Play();
-            this.startTimer(userId);
+
             this.audioPlayers[userId].Play();
         }
 
@@ -179,7 +188,10 @@ namespace MotionCaptureAudio
             this.playingControls[userId].Pause();
             this.audioPlayers[userId].Pause();
 
-            this.timers[userId].Stop();
+            if (!this.existActivePlayer())
+            {
+                this.timer1.Stop();
+            }
         }
 
         public void PlayPauseChange(int userId)
@@ -222,40 +234,20 @@ namespace MotionCaptureAudio
             this.canUp[playerId] = true;
         }
 
-        private void startTimer(int userId)
-        {
-            this.timers[userId].Start();
-        }
-
         private void timer_Tick(object sender, EventArgs e)
         {
-            this.playingControls[0].PlayTime.Text
-                = this.audioPlayers[0].CurrentTime.ToString(@"mm\:ss")
-                + "/"
-                + this.audioPlayers[0].Duration.ToString(@"mm\:ss");
-        }
+            string timeText = this.currentTime.ToString(@"mm\:ss")
+                + "/" + this.audioPlayers[0].Duration.ToString(@"mm\:ss");
 
-        private void timer2_Tick(object sender, EventArgs e)
-        {
-            this.playingControls[1].PlayTime.Text
-                = this.audioPlayers[1].CurrentTime.ToString(@"mm\:ss")
-                + "/"
-                + this.audioPlayers[1].Duration.ToString(@"mm\:ss");
-
-        }
-
-        private void timer3_Tick(object sender, EventArgs e)
-        {
-            this.playingControls[2].PlayTime.Text
-                = this.audioPlayers[2].CurrentTime.ToString(@"mm\:ss")
-                + "/"
-                + this.audioPlayers[2].Duration.ToString(@"mm\:ss");
+            for(int i = 0; i < playerCount; i++)
+            {
+                this.playingControls[i].PlayTime.Text = timeText;
+            }
         }
 
         private void setMusicFile()
         {
-            if (this.initializeInstance() != Result.OK) return;
-            this.canPlay = true;
+            this.canPlay = (this.initializeInstance() == Result.OK);
         }
 
         private void Player_Load(object sender, EventArgs e)
@@ -264,10 +256,6 @@ namespace MotionCaptureAudio
             {
                 this.setMusicFile();
                 this.backColorChange(0);
-
-                this.timers.Add(this.timer1);
-                this.timers.Add(this.timer2);
-                this.timers.Add(this.timer3);
 
                 for (int i = 0; i < playerCount; i++)
                 {
@@ -291,6 +279,20 @@ namespace MotionCaptureAudio
             }
 
             return false;
+        }
+
+        private void setCurrentTime()
+        {
+            for (int i = 0; i < playerCount; i++)
+            {
+                this.currentTime = (this.currentTime > this.audioPlayers[i].CurrentTime)
+                    ? this.currentTime : this.audioPlayers[i].CurrentTime;
+            }
+
+            for (int i = 0; i < playerCount; i++)
+            {
+                this.audioPlayers[i].CurrentTime = this.currentTime;
+            }
         }
     }
 }
