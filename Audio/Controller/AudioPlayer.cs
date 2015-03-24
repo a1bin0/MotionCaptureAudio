@@ -149,10 +149,9 @@ namespace MotionCaptureAudio.Controller
         {
             if (this.PlayState != PlayState.Playing)
             {
-                var restart = this.PlayState == PlayState.Paused;
                 this.PlayState = PlayState.Playing;
 
-                Bass.BASS_ChannelPlay(this._handle, restart);
+                Bass.BASS_ChannelPlay(this._handle, false);
             }
         }
 

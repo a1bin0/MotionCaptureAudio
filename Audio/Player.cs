@@ -216,7 +216,7 @@ namespace MotionCaptureAudio
 
             this.audioPlayers[playerId].Volume += maxVolume / 10;
             this.playingControls[playerId].trackBarVolume.Value += 1;
-            this.canUp[playerId] = this.audioPlayers[playerId].Volume < maxVolume;
+            this.canUp[playerId] = (int)this.audioPlayers[playerId].Volume < (int)maxVolume;
             this.canDown[playerId] = true;
         }
 
@@ -230,7 +230,7 @@ namespace MotionCaptureAudio
 
             this.audioPlayers[playerId].Volume -= maxVolume / 10;
             this.playingControls[playerId].trackBarVolume.Value -= 1;
-            this.canDown[playerId] = this.audioPlayers[playerId].Volume >= maxVolume / 10;
+            this.canDown[playerId] = (int)this.audioPlayers[playerId].Volume >= (int)maxVolume / 10;
             this.canUp[playerId] = true;
         }
 
@@ -289,10 +289,7 @@ namespace MotionCaptureAudio
                     ? this.currentTime : this.audioPlayers[i].CurrentTime;
             }
 
-            for (int i = 0; i < playerCount; i++)
-            {
-                this.audioPlayers[i].CurrentTime = this.currentTime;
-            }
+            this.audioPlayers.ForEach(item => item.CurrentTime = this.currentTime);
         }
     }
 }
