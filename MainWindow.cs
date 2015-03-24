@@ -35,7 +35,8 @@ namespace MotionCaptureAudio
         private CommandState currentState = CommandState.none;
         private Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>> joints = new Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>();
 
-        private DetectionStatus detectionStatus = DetectionStatus.none;
+        private int detectionCount = 0;
+        private int detectionMaxCount = 2;
 
         /// <summary>
         /// ステートです
@@ -236,7 +237,6 @@ namespace MotionCaptureAudio
             if (e.Status == CalibrationStatus.OK)
             {
                 userGene.SkeletonCapability.StartTracking(e.ID);
-                this.detectionStatus = DetectionStatus.calibrated;
                 this.player.CalibrationCompleted(0);
                 this.player.CalibrationCompleted(1);
                 this.player.CalibrationCompleted(2);
@@ -245,10 +245,10 @@ namespace MotionCaptureAudio
 
         void user_NewUser(object sender, NewUserEventArgs e)
         {
-            Console.WriteLine(String.Format("ユーザ検出: {0}", e.ID));
-            if (this.detectionStatus == DetectionStatus.none)
+            if (this.detectionCount > this.detectionMaxCount)
             {
-                this.detectionStatus = DetectionStatus.detected;
+                this.detectionCount++;
+                Console.WriteLine(String.Format("ユーザ検出: {0}", e.ID) + "　人数は" + this.detectionCount);
                 userGene.SkeletonCapability.RequestCalibration(e.ID, true);
 
                 this.player.DetectedUser(0);
@@ -259,8 +259,8 @@ namespace MotionCaptureAudio
 
         private void user_Lost(object sender, UserLostEventArgs e)
         {
-            Console.WriteLine(String.Format("ユーザ消失: {0}", e.ID));
-            this.detectionStatus = DetectionStatus.none;
+            this.detectionCount--;
+            Console.WriteLine(String.Format("ユーザ消失: {0}", e.ID) + "　人数は" + this.detectionCount);
 
             this.player.LostUser(0);
             this.player.LostUser(1);
@@ -301,6 +301,7 @@ namespace MotionCaptureAudio
         {
             Graphics g = Graphics.FromImage(this.img);
             g.FillRectangle(Brushes.Black, g.VisibleClipBounds);
+            Color color = (user == 1) ? Color.OrangeRed : Color.SkyBlue;
 
             if (!string.IsNullOrEmpty(this.message))
             {
@@ -318,24 +319,24 @@ namespace MotionCaptureAudio
 
             if (this.currentState != CommandState.appEnd)
             {
-                DrawLine(g, pointDict, SkeletonJoint.Head, SkeletonJoint.Neck);
+                DrawLine(g, pointDict, SkeletonJoint.Head, SkeletonJoint.Neck, color);
 
-                DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightHip);
-                DrawLine(g, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.LeftHip);
+                DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightHip, color);
+                DrawLine(g, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.LeftHip, color);
 
-                DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.LeftElbow);
-                DrawLine(g, pointDict, SkeletonJoint.LeftElbow, SkeletonJoint.LeftHand);
+                DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.LeftElbow, color);
+                DrawLine(g, pointDict, SkeletonJoint.LeftElbow, SkeletonJoint.LeftHand, color);
 
-                DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightShoulder);
-                DrawLine(g, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.RightElbow);
-                DrawLine(g, pointDict, SkeletonJoint.RightElbow, SkeletonJoint.RightHand);
+                DrawLine(g, pointDict, SkeletonJoint.LeftShoulder, SkeletonJoint.RightShoulder, color);
+                DrawLine(g, pointDict, SkeletonJoint.RightShoulder, SkeletonJoint.RightElbow, color);
+                DrawLine(g, pointDict, SkeletonJoint.RightElbow, SkeletonJoint.RightHand, color);
 
-                DrawLine(g, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.RightHip);
-                DrawLine(g, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.LeftKnee);
-                DrawLine(g, pointDict, SkeletonJoint.RightHip, SkeletonJoint.RightKnee);
+                DrawLine(g, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.RightHip, color);
+                DrawLine(g, pointDict, SkeletonJoint.LeftHip, SkeletonJoint.LeftKnee, color);
+                DrawLine(g, pointDict, SkeletonJoint.RightHip, SkeletonJoint.RightKnee, color);
 
-                DrawLine(g, pointDict, SkeletonJoint.LeftKnee, SkeletonJoint.LeftFoot);
-                DrawLine(g, pointDict, SkeletonJoint.RightKnee, SkeletonJoint.RightFoot);
+                DrawLine(g, pointDict, SkeletonJoint.LeftKnee, SkeletonJoint.LeftFoot, color);
+                DrawLine(g, pointDict, SkeletonJoint.RightKnee, SkeletonJoint.RightFoot, color);
 
                 this.pictBox.BackgroundImage = this.img;
             }
@@ -357,14 +358,14 @@ namespace MotionCaptureAudio
             this.joints[user][joint] = pos;
         }
 
-        private void DrawLine(Graphics g, Dictionary<SkeletonJoint, SkeletonJointPosition> dict, SkeletonJoint j1, SkeletonJoint j2)
+        private void DrawLine(Graphics g, Dictionary<SkeletonJoint, SkeletonJointPosition> dict, SkeletonJoint j1, SkeletonJoint j2, Color color)
         {
             Point3D pos1 = this.depth.ConvertRealWorldToProjective(dict[j1].Position);
             Point3D pos2 = this.depth.ConvertRealWorldToProjective(dict[j2].Position);
 
             if (dict[j1].Confidence == 0 || dict[j2].Confidence == 0) return;
 
-            g.DrawLine(new Pen(Color.OrangeRed, 30),
+            g.DrawLine(new Pen(color, 30),
                         new Point((int)(pos1.X * 3), (int)(pos1.Y * 3)),
                         new Point((int)(pos2.X * 3), (int)(pos2.Y * 3)));
 
