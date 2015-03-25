@@ -245,7 +245,7 @@ namespace MotionCaptureAudio
 
         void user_NewUser(object sender, NewUserEventArgs e)
         {
-            if (this.detectionCount > this.detectionMaxCount)
+            if (this.detectionCount < this.detectionMaxCount)
             {
                 this.detectionCount++;
                 Console.WriteLine(String.Format("ユーザ検出: {0}", e.ID) + "　人数は" + this.detectionCount);

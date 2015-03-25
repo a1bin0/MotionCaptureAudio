@@ -36,11 +36,12 @@ namespace MotionCaptureAudio
 
             if (positions.Count >= this.positionMaxCount)
             {
-                if (positions.All(item => this.isJump(positions)))
-                {
-                    this.JumpDetected(this, EventArgs.Empty);
-                }
-                else if (userID == 1 && positions.All(item => this.isRightOverSholder(positions)) && positions.All(item => this.isLeftOverSholder(positions)))
+                //if (positions.All(item => this.isJump(positions)))
+                //{
+                //    this.JumpDetected(this, EventArgs.Empty);
+                //}
+                //else 
+                if (userID == 1 && positions.All(item => this.isRightOverSholder(positions)) && positions.All(item => this.isLeftOverSholder(positions)))
                 {
                     this.BothHandUpDetected(this, EventArgs.Empty);
                 }
