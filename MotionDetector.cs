@@ -11,12 +11,14 @@ namespace MotionCaptureAudio
         private Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>> histryData = new Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>>();
         private readonly int positionMaxCount = 10;
         private readonly double confidenceBase = 0.95;
+        private readonly double thresholdJump = 30.0;
 
         public event EventHandler LeftHandUpDetected;
         public event EventHandler LeftHandDownDetected;
         public event EventHandler RightHandUpDetected;
         public event EventHandler RightHandDownDetected;
         public event EventHandler BothHandUpDetected;
+        public event EventHandler JumpDetected;
         public event EventHandler IdleDetected;
 
         /// <summary>
@@ -34,7 +36,11 @@ namespace MotionCaptureAudio
 
             if (positions.Count >= this.positionMaxCount)
             {
-                if (userID == 1 && positions.All(item => this.isRightOverSholder(positions)) && positions.All(item => this.isLeftOverSholder(positions)))
+                if (positions.All(item => this.isJump(positions)))
+                {
+                    this.JumpDetected(this, EventArgs.Empty);
+                }
+                else if (userID == 1 && positions.All(item => this.isRightOverSholder(positions)) && positions.All(item => this.isLeftOverSholder(positions)))
                 {
                     this.BothHandUpDetected(this, EventArgs.Empty);
                 }
@@ -196,6 +202,31 @@ namespace MotionCaptureAudio
                 Point3D rightSholder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightShoulder].Position);
 
                 if (rightHand.Y > rightSholder.Y) return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// ジャンプしたか（消すかも？）
+        /// </summary>
+        /// <param name="skeleton"></param>
+        /// <returns></returns>
+        private bool isJump(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
+        {
+            for (int i = 0; i < this.positionMaxCount - 1; i++)
+            {
+                if (positions[i][SkeletonJoint.RightShoulder].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.LeftShoulder].Confidence < this.confidenceBase) return false;
+
+                Point3D oldRightSholder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightShoulder].Position);
+                Point3D newRightSholder = depth.ConvertRealWorldToProjective(positions[i + 1][SkeletonJoint.RightShoulder].Position);
+
+                Point3D oldLeftSholder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftShoulder].Position);
+                Point3D newLeftSholder = depth.ConvertRealWorldToProjective(positions[i + 1][SkeletonJoint.LeftShoulder].Position);
+
+                if (oldRightSholder.Y - this.thresholdJump > newRightSholder.Y) return false;
+                if (oldLeftSholder.Y - this.thresholdJump > newLeftSholder.Y) return false;
             }
 
             return true;

@@ -142,7 +142,7 @@ namespace MotionCaptureAudio
         {
             var count = int.Parse(this.message.Substring(this.message.Length - 1, 1));
             count--;
-            if(count == 0)
+            if (count == 0)
             {
                 this.countDownTimer.Stop();
                 this.countDownTimer.Dispose();

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Linq;
 
 namespace MotionCaptureAudio
 {
@@ -216,7 +217,7 @@ namespace MotionCaptureAudio
 
             this.audioPlayers[playerId].Volume += maxVolume / 10;
             this.playingControls[playerId].trackBarVolume.Value += 1;
-            this.canUp[playerId] = (int)this.audioPlayers[playerId].Volume < (int)maxVolume;
+            this.canUp[playerId] = this.playingControls[playerId].trackBarVolume.Value < this.playingControls[playerId].trackBarVolume.Maximum;
             this.canDown[playerId] = true;
         }
 
@@ -230,7 +231,7 @@ namespace MotionCaptureAudio
 
             this.audioPlayers[playerId].Volume -= maxVolume / 10;
             this.playingControls[playerId].trackBarVolume.Value -= 1;
-            this.canDown[playerId] = (int)this.audioPlayers[playerId].Volume >= (int)maxVolume / 10;
+            this.canDown[playerId] = this.playingControls[playerId].trackBarVolume.Value > this.playingControls[playerId].trackBarVolume.Minimum;
             this.canUp[playerId] = true;
         }
 
@@ -260,8 +261,8 @@ namespace MotionCaptureAudio
                 for (int i = 0; i < playerCount; i++)
                 {
                     this.playingControls[i].trackBarVolume.Value = (int)(this.audioPlayers[i].Volume * 10);
-                    this.canUp[i] = this.canPlay && this.audioPlayers[i].Volume < maxVolume;
-                    this.canDown[i] = this.canPlay && this.audioPlayers[i].Volume >= maxVolume / 10;
+                    this.canUp[i] = true;
+                    this.canDown[i] = true;
                 }
             }
         }
@@ -273,22 +274,12 @@ namespace MotionCaptureAudio
 
         private bool existActivePlayer()
         {
-            foreach (var item in this.audioPlayers)
-            {
-                if (item.PlayState == PlayState.Playing) return true;
-            }
-
-            return false;
+            return this.audioPlayers.Any(item => item.PlayState == PlayState.Playing);
         }
 
         private void setCurrentTime()
         {
-            for (int i = 0; i < playerCount; i++)
-            {
-                this.currentTime = (this.currentTime > this.audioPlayers[i].CurrentTime)
-                    ? this.currentTime : this.audioPlayers[i].CurrentTime;
-            }
-
+            this.currentTime = this.audioPlayers.Max(item => item.CurrentTime);
             this.audioPlayers.ForEach(item => item.CurrentTime = this.currentTime);
         }
     }
