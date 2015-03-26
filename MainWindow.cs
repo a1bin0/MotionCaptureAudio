@@ -20,6 +20,9 @@ namespace MotionCaptureAudio
         private const string PauseMusic = "Pause music!!";
         private const string ChangePlayer = "Player changed!!";
 
+        private int currentUserId = 1;
+        private int countDownTime = 3;
+
         private Bitmap img;
 
         private Context context;
@@ -129,7 +132,7 @@ namespace MotionCaptureAudio
                 this.countDownTimer.Dispose();
             }
 
-            this.message = "Application terminate...3";
+            this.message = "Application terminate...";
 
             this.countDownTimer = new System.Windows.Forms.Timer();
             this.countDownTimer.Tick += this.countDown;
@@ -140,9 +143,7 @@ namespace MotionCaptureAudio
 
         private void countDown(object sender, EventArgs e)
         {
-            var count = int.Parse(this.message.Substring(this.message.Length - 1, 1));
-            count--;
-            if (count == 0)
+            if (countDownTime == 0)
             {
                 this.countDownTimer.Stop();
                 this.countDownTimer.Dispose();
@@ -150,7 +151,8 @@ namespace MotionCaptureAudio
                 this.Close();
             }
 
-            this.message = "Application terminate..." + count.ToString();
+            this.countDownTime--;
+            this.labelCountDown.Text = this.countDownTime.ToString();
         }
 
         private void clearMessage(object sender, EventArgs e)
@@ -163,15 +165,23 @@ namespace MotionCaptureAudio
 
         private void bothHandUpDetected(object sender, EventArgs e)
         {
-            if (this.currentState != CommandState.appEnd)
+            if (this.detectionCount == 1)
             {
-                this.currentState = CommandState.appEnd;
+                if (this.currentState != CommandState.appEnd)
+                {
+                    this.currentState = CommandState.appEnd;
 
-                this.player.Pause(0);
-                this.player.Pause(1);
-                this.player.Pause(2);
+                    this.player.Pause(0);
+                    this.player.Pause(1);
+                    this.player.Pause(2);
 
-                this.startCountDownTimer();
+                    this.labelCountDown.Visible = true;
+                    this.startCountDownTimer();
+                }
+            }
+            else if(this.detectionCount == 2)
+            {
+                this.currentUserId = 2;
             }
         }
 
@@ -260,6 +270,7 @@ namespace MotionCaptureAudio
         private void user_Lost(object sender, UserLostEventArgs e)
         {
             this.detectionCount--;
+            this.currentUserId = 1;
             Console.WriteLine(String.Format("ユーザ消失: {0}", e.ID) + "　人数は" + this.detectionCount);
 
             this.player.LostUser(0);
@@ -287,9 +298,9 @@ namespace MotionCaptureAudio
                             pointDict.Add(skeletonJoint, userGene.SkeletonCapability.GetSkeletonJointPosition(user, skeletonJoint));
                         }
 
-                        this.motionDetector.DetectMotion(user, pointDict);
+                        if(user == this.currentUserId) this.motionDetector.DetectMotion(user, pointDict);
+                        
                         var pointDic = new List<Object>() { user, pointDict };
-
                         this.Invoke(new Action<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>(draw), pointDic.ToArray());
                         this.pictBox.Invalidate();
                     }
@@ -301,7 +312,7 @@ namespace MotionCaptureAudio
         {
             Graphics g = Graphics.FromImage(this.img);
             g.FillRectangle(Brushes.Black, g.VisibleClipBounds);
-            Color color = (user == 1) ? Color.OrangeRed : Color.SkyBlue;
+            Color color = user == this.currentUserId ? ((user == 1) ? Color.OrangeRed : Color.SkyBlue) : Color.White;
 
             if (!string.IsNullOrEmpty(this.message))
             {

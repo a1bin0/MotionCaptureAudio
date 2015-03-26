@@ -27,9 +27,10 @@
 		{
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.panel1 = new System.Windows.Forms.Panel();
+            this.player = new MotionCaptureAudio.Player();
             this.pictBox = new System.Windows.Forms.PictureBox();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
-            this.player = new MotionCaptureAudio.Player();
+            this.labelCountDown = new System.Windows.Forms.Label();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictBox)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -44,6 +45,16 @@
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(191, 720);
             this.panel1.TabIndex = 1;
+            // 
+            // player
+            // 
+            this.player.BackColor = System.Drawing.Color.Black;
+            this.player.Dock = System.Windows.Forms.DockStyle.Left;
+            this.player.ForeColor = System.Drawing.Color.White;
+            this.player.Location = new System.Drawing.Point(0, 0);
+            this.player.Name = "player";
+            this.player.Size = new System.Drawing.Size(190, 720);
+            this.player.TabIndex = 13;
             // 
             // pictBox
             // 
@@ -66,21 +77,25 @@
             this.pictureBox1.TabIndex = 3;
             this.pictureBox1.TabStop = false;
             // 
-            // player
+            // labelCountDown
             // 
-            this.player.BackColor = System.Drawing.Color.Black;
-            this.player.Dock = System.Windows.Forms.DockStyle.Left;
-            this.player.ForeColor = System.Drawing.Color.White;
-            this.player.Location = new System.Drawing.Point(0, 0);
-            this.player.Name = "player";
-            this.player.Size = new System.Drawing.Size(190, 720);
-            this.player.TabIndex = 13;
+            this.labelCountDown.AutoSize = true;
+            this.labelCountDown.BackColor = System.Drawing.Color.Black;
+            this.labelCountDown.Font = new System.Drawing.Font("Meiryo UI", 360F);
+            this.labelCountDown.ForeColor = System.Drawing.Color.Yellow;
+            this.labelCountDown.Location = new System.Drawing.Point(286, 101);
+            this.labelCountDown.Name = "labelCountDown";
+            this.labelCountDown.Size = new System.Drawing.Size(553, 610);
+            this.labelCountDown.TabIndex = 4;
+            this.labelCountDown.Text = "3";
+            this.labelCountDown.Visible = false;
             // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1184, 720);
+            this.Controls.Add(this.labelCountDown);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.pictBox);
             this.Controls.Add(this.panel1);
@@ -92,6 +107,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictBox)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
 		}
 
@@ -101,6 +117,7 @@
         private System.Windows.Forms.PictureBox pictBox;
         private Player player;
         private System.Windows.Forms.PictureBox pictureBox1;
+        private System.Windows.Forms.Label labelCountDown;
     }
 }
 

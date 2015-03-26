@@ -45,7 +45,7 @@ namespace MotionCaptureAudio
                 {
                     this.BothHandUpDetected(this, EventArgs.Empty);
                 }
-                if (positions.All(item => this.isLeftUp(positions)))
+                else if (positions.All(item => this.isLeftUp(positions)))
                 {
                     this.RightHandUpDetected(this, EventArgs.Empty);
                 }
