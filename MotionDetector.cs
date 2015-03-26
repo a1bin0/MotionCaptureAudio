@@ -11,7 +11,7 @@ namespace MotionCaptureAudio
         private Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>> histryData = new Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>>();
         private readonly int positionMaxCount = 10;
         private readonly double confidenceBase = 0.95;
-        private float thresholdJump = 60f;
+        private float threshold = 60f;
 
         public event EventHandler LeftHandUpDetected;
         public event EventHandler LeftHandDownDetected;
@@ -19,6 +19,7 @@ namespace MotionCaptureAudio
         public event EventHandler RightHandDownDetected;
         public event EventHandler BothHandUpDetected;
         public event EventHandler JumpDetected;
+        public event EventHandler FinishDetected;
         public event EventHandler IdleDetected;
 
         /// <summary>
@@ -36,7 +37,11 @@ namespace MotionCaptureAudio
 
             if (positions.Count >= this.positionMaxCount)
             {
-                if (positions.All(item => this.isJump(positions)))
+                if (positions.All(item => this.isFinished(positions)))
+                {
+                    this.FinishDetected(this, EventArgs.Empty);
+                }
+                else if (positions.All(item => this.isJump(positions)))
                 {
                     this.JumpDetected(this, EventArgs.Empty);
                 }
@@ -208,7 +213,7 @@ namespace MotionCaptureAudio
         }
 
         /// <summary>
-        /// ジャンプしたか（消すかも？）
+        /// ジャンプしたか
         /// </summary>
         /// <param name="skeleton"></param>
         /// <returns></returns>
@@ -239,12 +244,38 @@ namespace MotionCaptureAudio
                 if (oldLeftHip.Y  < newLeftHip.Y) return false;
             }
 
-             this.thresholdJump = (Math.Abs (depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).X -
+             this.threshold = (Math.Abs (depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).X -
                  depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftShoulder].Position).X)) * 0.9f;
 
              if (Math.Abs(depth.ConvertRealWorldToProjective(positions[9][SkeletonJoint.RightShoulder].Position).Y -
-             depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).Y) < this.thresholdJump) return false;
+             depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).Y) < this.threshold) return false;
                 
+            return true;
+        }
+
+        /// <summary>
+        /// 右手で終了処理を行ったか
+        /// </summary>
+        /// <param name="skeleton"></param>
+        /// <returns></returns>
+        private bool isFinished(List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions)
+        {
+            for (int i = 0; i < this.positionMaxCount - 1; i++)
+            {
+                if (positions[i][SkeletonJoint.RightHand].Confidence < this.confidenceBase) return false;
+
+                Point3D oldLeftHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
+                Point3D newLeftHand = depth.ConvertRealWorldToProjective(positions[i + 1][SkeletonJoint.LeftHand].Position);
+
+                if (oldLeftHand.X < newLeftHand.X) return false;
+            }
+
+            this.threshold = Math.Abs(depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).X -
+    depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftShoulder].Position).X);
+
+            if (Math.Abs(depth.ConvertRealWorldToProjective(positions[9][SkeletonJoint.LeftHand].Position).X -
+             depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftHand].Position).X) < this.threshold) return false;
+
             return true;
         }
     }

@@ -109,6 +109,7 @@ namespace MotionCaptureAudio
             this.motionDetector.LeftHandUpDetected += this.leftHandUpDetected;
             this.motionDetector.RightHandUpDetected += this.rightHandUpDetected;
             this.motionDetector.RightHandDownDetected += this.rightHandDownDetected;
+            this.motionDetector.FinishDetected += this.finishDetected;
             this.motionDetector.IdleDetected += this.idleDetected;
         }
 
@@ -180,7 +181,16 @@ namespace MotionCaptureAudio
 
         private void bothHandUpDetected(object sender, EventArgs e)
         {
-            if (this.detectionCount == 1 && this.currentUserId ==1)
+            if(this.detectionCount == 2)
+            {
+                this.currentState = CommandState.none;
+                this.currentUserId = this.currentUserId == 1 ? 2 : 1;
+            }
+        }
+
+        private void finishDetected(object sender, EventArgs e)
+        {
+            if (this.currentUserId == 1)
             {
                 if (this.currentState != CommandState.appEnd)
                 {
@@ -192,11 +202,6 @@ namespace MotionCaptureAudio
 
                     this.startCountDownTimer();
                 }
-            }
-            else if(this.detectionCount == 2)
-            {
-                this.currentState = CommandState.none;
-                this.currentUserId = this.currentUserId == 1 ? 2 : 1;
             }
         }
 
