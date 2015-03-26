@@ -11,7 +11,7 @@ namespace MotionCaptureAudio
         private Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>> histryData = new Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>>();
         private readonly int positionMaxCount = 10;
         private readonly double confidenceBase = 0.95;
-        private readonly double thresholdJump = 30.0;
+        private float thresholdJump = 60f;
 
         public event EventHandler LeftHandUpDetected;
         public event EventHandler LeftHandDownDetected;
@@ -36,12 +36,11 @@ namespace MotionCaptureAudio
 
             if (positions.Count >= this.positionMaxCount)
             {
-                //if (positions.All(item => this.isJump(positions)))
-                //{
-                //    this.JumpDetected(this, EventArgs.Empty);
-                //}
-                //else 
-                if (userID == 1 && positions.All(item => this.isRightOverSholder(positions)) && positions.All(item => this.isLeftOverSholder(positions)))
+                if (positions.All(item => this.isJump(positions)))
+                {
+                    this.JumpDetected(this, EventArgs.Empty);
+                }
+                else if (positions.All(item => this.isRightOverSholder(positions)) && positions.All(item => this.isLeftOverSholder(positions)))
                 {
                     this.BothHandUpDetected(this, EventArgs.Empty);
                 }
@@ -219,6 +218,8 @@ namespace MotionCaptureAudio
             {
                 if (positions[i][SkeletonJoint.RightShoulder].Confidence < this.confidenceBase) return false;
                 if (positions[i][SkeletonJoint.LeftShoulder].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.RightHip].Confidence < this.confidenceBase) return false;
+                if (positions[i][SkeletonJoint.LeftHip].Confidence < this.confidenceBase) return false;
 
                 Point3D oldRightSholder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightShoulder].Position);
                 Point3D newRightSholder = depth.ConvertRealWorldToProjective(positions[i + 1][SkeletonJoint.RightShoulder].Position);
@@ -226,10 +227,24 @@ namespace MotionCaptureAudio
                 Point3D oldLeftSholder = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftShoulder].Position);
                 Point3D newLeftSholder = depth.ConvertRealWorldToProjective(positions[i + 1][SkeletonJoint.LeftShoulder].Position);
 
-                if (oldRightSholder.Y - this.thresholdJump > newRightSholder.Y) return false;
-                if (oldLeftSholder.Y - this.thresholdJump > newLeftSholder.Y) return false;
+                Point3D oldRightHip = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.RightHip].Position);
+                Point3D newRightHip = depth.ConvertRealWorldToProjective(positions[i + 1][SkeletonJoint.RightHip].Position);
+
+                Point3D oldLeftHip = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHip].Position);
+                Point3D newLeftHip = depth.ConvertRealWorldToProjective(positions[i + 1][SkeletonJoint.LeftHip].Position);
+
+                if (oldRightSholder.Y  < newRightSholder.Y) return false;
+                if (oldLeftSholder.Y  < newLeftSholder.Y) return false;
+                if (oldRightHip.Y  < newRightHip.Y) return false;
+                if (oldLeftHip.Y  < newLeftHip.Y) return false;
             }
 
+             this.thresholdJump = (Math.Abs (depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).X -
+                 depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftShoulder].Position).X)) * 0.9f;
+
+             if (Math.Abs(depth.ConvertRealWorldToProjective(positions[9][SkeletonJoint.RightShoulder].Position).Y -
+             depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).Y) < this.thresholdJump) return false;
+                
             return true;
         }
     }

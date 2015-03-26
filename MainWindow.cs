@@ -19,6 +19,7 @@ namespace MotionCaptureAudio
         private const string PlayMusic = "Play music!!";
         private const string PauseMusic = "Pause music!!";
         private const string ChangePlayer = "Player changed!!";
+        private const string Terminate = "Application terminate...";
 
         private int currentUserId = 1;
         private int countDownTime = 3;
@@ -52,6 +53,7 @@ namespace MotionCaptureAudio
             volumeDown,
             playerChange,
             appEnd,
+            jump,
         }
 
         /// <summary>
@@ -101,6 +103,7 @@ namespace MotionCaptureAudio
         private void setupMotiondetector()
         {
             this.motionDetector = new MotionDetector(this.depth);
+            this.motionDetector.JumpDetected += this.jumpDetected;
             this.motionDetector.BothHandUpDetected += this.bothHandUpDetected;
             this.motionDetector.LeftHandDownDetected += this.leftHandDownDetected;
             this.motionDetector.LeftHandUpDetected += this.leftHandUpDetected;
@@ -132,11 +135,11 @@ namespace MotionCaptureAudio
                 this.countDownTimer.Dispose();
             }
 
-            this.message = "Application terminate...";
+            this.message = Terminate;
 
             this.countDownTimer = new System.Windows.Forms.Timer();
             this.countDownTimer.Tick += this.countDown;
-            this.countDownTimer.Interval = 1000;
+            this.countDownTimer.Interval = 900;
 
             this.countDownTimer.Start();
         }
@@ -152,7 +155,6 @@ namespace MotionCaptureAudio
             }
 
             this.countDownTime--;
-            this.labelCountDown.Text = this.countDownTime.ToString();
         }
 
         private void clearMessage(object sender, EventArgs e)
@@ -163,9 +165,22 @@ namespace MotionCaptureAudio
             this.messageTimer.Dispose();
         }
 
+        private void jumpDetected(object sender, EventArgs e)
+        {
+            if (this.currentState != CommandState.jump && this.currentState != CommandState.appEnd)
+            {
+                this.message = Terminate;
+                this.startMessageTimer();
+
+                this.player.Play(0);
+
+                this.currentState = CommandState.jump;
+            }
+        }
+
         private void bothHandUpDetected(object sender, EventArgs e)
         {
-            if (this.detectionCount == 1)
+            if (this.detectionCount == 1 && this.currentUserId ==1)
             {
                 if (this.currentState != CommandState.appEnd)
                 {
@@ -175,13 +190,13 @@ namespace MotionCaptureAudio
                     this.player.Pause(1);
                     this.player.Pause(2);
 
-                    this.labelCountDown.Visible = true;
                     this.startCountDownTimer();
                 }
             }
             else if(this.detectionCount == 2)
             {
-                this.currentUserId = 2;
+                this.currentState = CommandState.none;
+                this.currentUserId = this.currentUserId == 1 ? 2 : 1;
             }
         }
 
@@ -270,7 +285,6 @@ namespace MotionCaptureAudio
         private void user_Lost(object sender, UserLostEventArgs e)
         {
             this.detectionCount--;
-            this.currentUserId = 1;
             Console.WriteLine(String.Format("ユーザ消失: {0}", e.ID) + "　人数は" + this.detectionCount);
 
             this.player.LostUser(0);
@@ -311,12 +325,13 @@ namespace MotionCaptureAudio
         private void draw(int user, Dictionary<SkeletonJoint, SkeletonJointPosition> pointDict)
         {
             Graphics g = Graphics.FromImage(this.img);
-            g.FillRectangle(Brushes.Black, g.VisibleClipBounds);
-            Color color = user == this.currentUserId ? ((user == 1) ? Color.OrangeRed : Color.SkyBlue) : Color.White;
+            if(user == 1) g.FillRectangle(Brushes.Black, g.VisibleClipBounds);
+
+            Color color = user == this.currentUserId ? ((user == 1) ? Color.OrangeRed : Color.DeepSkyBlue) : Color.White;
 
             if (!string.IsNullOrEmpty(this.message))
             {
-                var font = new Font("Segoe UI", 48, FontStyle.Bold | FontStyle.Italic);
+                var font = new Font("Segoe UI", 64, FontStyle.Bold | FontStyle.Italic);
                 var brush = new SolidBrush(Color.Yellow);
 
                 g.DrawString(this.message, font, brush, PointF.Empty);
@@ -350,6 +365,19 @@ namespace MotionCaptureAudio
                 DrawLine(g, pointDict, SkeletonJoint.RightKnee, SkeletonJoint.RightFoot, color);
 
                 this.pictBox.BackgroundImage = this.img;
+            }
+            else
+            {
+                var font = new Font("Segoe UI", 400, FontStyle.Bold | FontStyle.Italic);
+                var brush = new SolidBrush(Color.Yellow);
+
+                g.DrawString(this.countDownTime.ToString(), font, brush, new PointF(220f, 50f));
+
+                font.Dispose();
+                font = null;
+
+                brush.Dispose();
+                brush = null;
             }
 
             g.Dispose();
