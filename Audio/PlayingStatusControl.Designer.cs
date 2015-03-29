@@ -65,6 +65,7 @@
             // PlayTime
             // 
             this.PlayTime.AutoSize = true;
+            this.PlayTime.BackColor = System.Drawing.Color.Transparent;
             this.PlayTime.Font = new System.Drawing.Font("MS UI Gothic", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(128)));
             this.PlayTime.Location = new System.Drawing.Point(10, 15);
             this.PlayTime.Name = "PlayTime";
@@ -74,7 +75,7 @@
             // 
             // trackBarVolume
             // 
-            this.trackBarVolume.BackColor = System.Drawing.SystemColors.MenuText;
+            this.trackBarVolume.BackColor = System.Drawing.Color.Black;
             this.trackBarVolume.Location = new System.Drawing.Point(109, 0);
             this.trackBarVolume.Name = "trackBarVolume";
             this.trackBarVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
@@ -85,11 +86,12 @@
             // PlayingStatusControl
             // 
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-            this.BackColor = System.Drawing.Color.Transparent;
+            this.BackColor = System.Drawing.Color.Black;
             this.Controls.Add(this.trackBarVolume);
             this.Controls.Add(this.PlayTime);
             this.Controls.Add(this.PictPause);
             this.Controls.Add(this.PictPlay);
+            this.ForeColor = System.Drawing.SystemColors.HighlightText;
             this.Name = "PlayingStatusControl";
             this.Size = new System.Drawing.Size(160, 220);
             ((System.ComponentModel.ISupportInitialize)(this.PictPause)).EndInit();

@@ -84,12 +84,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="UserPlayingStatusForm.cs">
-      <SubType>UserControl</SubType>
-    </Compile>
-    <Compile Include="UserPlayingStatusForm.designer.cs">
-      <DependentUpon>UserPlayingStatusForm.cs</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -99,9 +93,6 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
-    <EmbeddedResource Include="UserPlayingStatusForm.resx">
-      <DependentUpon>UserPlayingStatusForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

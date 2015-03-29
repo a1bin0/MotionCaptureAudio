@@ -11,7 +11,6 @@ namespace MotionCaptureAudio
         private Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>> histryData = new Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>>();
         private readonly int positionMaxCount = 10;
         private readonly double confidenceBase = 0.95;
-        private float threshold = 60f;
 
         public event EventHandler LeftHandUpDetected;
         public event EventHandler LeftHandDownDetected;
@@ -45,7 +44,8 @@ namespace MotionCaptureAudio
                 {
                     this.JumpDetected(this, EventArgs.Empty);
                 }
-                else if (positions.All(item => this.isRightOverSholder(positions)) && positions.All(item => this.isLeftOverSholder(positions)))
+                else if (positions.All(item => this.isRightOverSholder(positions)) &&
+                         positions.All(item => this.isLeftOverSholder(positions)))
                 {
                     this.BothHandUpDetected(this, EventArgs.Empty);
                 }
@@ -244,13 +244,15 @@ namespace MotionCaptureAudio
                 if (oldLeftHip.Y  < newLeftHip.Y) return false;
             }
 
-             this.threshold = (Math.Abs (depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).X -
-                 depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftShoulder].Position).X)) * 0.9f;
+            var threshold
+                 = Math.Abs(depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).X -
+                            depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftShoulder].Position).X) * 0.9f;
 
-             if (Math.Abs(depth.ConvertRealWorldToProjective(positions[9][SkeletonJoint.RightShoulder].Position).Y -
-             depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).Y) < this.threshold) return false;
-                
-            return true;
+            var actual
+                = Math.Abs(depth.ConvertRealWorldToProjective(positions[9][SkeletonJoint.RightShoulder].Position).Y -
+                           depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).Y);
+            
+            return (threshold < actual);
         }
 
         /// <summary>
@@ -270,13 +272,15 @@ namespace MotionCaptureAudio
                 if (oldLeftHand.X < newLeftHand.X) return false;
             }
 
-            this.threshold = Math.Abs(depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).X -
-    depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftShoulder].Position).X);
+            var threshold
+                = Math.Abs(depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.RightShoulder].Position).X -
+                           depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftShoulder].Position).X);
 
-            if (Math.Abs(depth.ConvertRealWorldToProjective(positions[9][SkeletonJoint.LeftHand].Position).X -
-             depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftHand].Position).X) < this.threshold) return false;
+            var actual
+                = Math.Abs(depth.ConvertRealWorldToProjective(positions[9][SkeletonJoint.LeftHand].Position).X -
+                           depth.ConvertRealWorldToProjective(positions[0][SkeletonJoint.LeftHand].Position).X);
 
-            return true;
+            return (threshold < actual);
         }
     }
 }

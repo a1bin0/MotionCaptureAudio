@@ -17,12 +17,9 @@ namespace MotionCaptureAudio
     public partial class Player : UserControl
     {
         private const int playerCount = 3;
-        private const float maxVolume = 10f;
         private TimeSpan currentTime;
 
         public bool canPlay = false;
-        public bool[] canUp = new bool[playerCount];
-        public bool[] canDown = new bool[playerCount];
 
         private List<PlayingStatusControl> playingControls = new List<PlayingStatusControl>();
         private List<AudioPlayer> audioPlayers;
@@ -38,12 +35,23 @@ namespace MotionCaptureAudio
             }
         }
 
+        public bool CanUp(int playerId)
+        {
+            return this.playingControls[playerId].CanUp;
+        }
+
+        public bool CanDown(int playerId)
+        {
+            return this.playingControls[playerId].CanDown;
+        }
+
         public void backColorChange(int playerId)
         {
             for (int i = 0; i < playerCount; i++)
             {
-                this.playingControls[i].BackColor = (i == playerId) ? Color.Gray : Color.Transparent;
-                this.playingControls[i].trackBarVolume.BackColor = (i == playerId) ? Color.Gray : Color.Black;
+                var backColor = (i == playerId) ? SystemColors.Highlight : Color.Black;
+                this.playingControls[i].BackColor = backColor;
+                this.playingControls[i].trackBarVolume.BackColor = backColor;
             }
         }
 
@@ -59,7 +67,7 @@ namespace MotionCaptureAudio
                 e.PlayTime.Text = "00:00 / 00:00";
                 e.PictPlay.Visible = false;
                 e.PictPause.Visible = true;
-                e.trackBarVolume.Value = (int)this.audioPlayers[count].Volume * 10;
+                e.trackBarVolume.Value = 5;
                 count++;
             });
 
@@ -123,48 +131,55 @@ namespace MotionCaptureAudio
             return Result.OK;
         }
 
-        public void CalibrationCompleted(int userId)
+        public void CalibrationCompleted()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.CalibrationCompleted), userId);
+                this.Invoke(new Action(this.CalibrationCompleted));
                 return;
             }
 
-            this.playingControls[userId].CalibrationCompleted();
+            foreach(var item in this.playingControls)
+            {
+                item.CalibrationCompleted();
+            }
         }
 
-        public void DetectedUser(int userId)
+        public void DetectedUser()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.DetectedUser), userId);
+                this.Invoke(new Action(this.DetectedUser));
                 return;
             }
 
-            this.playingControls[userId].DetectedUser();
+            foreach (var item in this.playingControls)
+            {
+                item.DetectedUser();
+            }
         }
 
-        public void LostUser(int userId)
+        public void LostUser()
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.LostUser), userId);
+                this.Invoke(new Action(this.LostUser));
                 return;
             }
 
-            this.playingControls[userId].LostUser();
+            foreach (var item in this.playingControls)
+            {
+                item.LostUser();
+            }
         }
 
-        public void Play(int userId)
+        public void Play(int playerId)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.Play), userId);
+                this.Invoke(new Action<int>(this.Play), playerId);
                 return;
             }
-
-            this.audioPlayers[userId].Volume = float.Parse(this.playingControls[userId].trackBarVolume.Value.ToString()) / 10;
 
             if (!this.existActivePlayer())
             {
@@ -173,21 +188,20 @@ namespace MotionCaptureAudio
 
             this.setCurrentTime();
 
-            this.playingControls[userId].Play();
-
-            this.audioPlayers[userId].Play();
+            this.playingControls[playerId].Play();
+            this.audioPlayers[playerId].Play();
         }
 
-        public void Pause(int userId)
+        public void Pause(int playerId)
         {
             if (this.InvokeRequired)
             {
-                this.Invoke(new Action<int>(this.Pause), userId);
+                this.Invoke(new Action<int>(this.Pause), playerId);
                 return;
             }
 
-            this.playingControls[userId].Pause();
-            this.audioPlayers[userId].Pause();
+            this.playingControls[playerId].Pause();
+            this.audioPlayers[playerId].Pause();
 
             if (!this.existActivePlayer())
             {
@@ -195,15 +209,15 @@ namespace MotionCaptureAudio
             }
         }
 
-        public void PlayPauseChange(int userId)
+        public void PlayPauseChange(int playerId)
         {
-            if (this.IsPlaying(userId))
+            if (this.IsPlaying(playerId))
             {
-                this.Pause(userId);
+                this.Pause(playerId);
             }
             else
             {
-                this.Play(userId);
+                this.Play(playerId);
             }
         }
 
@@ -215,10 +229,8 @@ namespace MotionCaptureAudio
                 return;
             }
 
-            this.audioPlayers[playerId].Volume += maxVolume / 10;
-            this.playingControls[playerId].trackBarVolume.Value += 1;
-            this.canUp[playerId] = this.playingControls[playerId].trackBarVolume.Value < this.playingControls[playerId].trackBarVolume.Maximum;
-            this.canDown[playerId] = true;
+            this.audioPlayers[playerId].Volume += 1.0f;
+            this.playingControls[playerId].trackBarVolume.Value++;
         }
 
         public void VolumeDown(int playerId)
@@ -229,20 +241,23 @@ namespace MotionCaptureAudio
                 return;
             }
 
-            this.audioPlayers[playerId].Volume -= maxVolume / 10;
-            this.playingControls[playerId].trackBarVolume.Value -= 1;
-            this.canDown[playerId] = this.playingControls[playerId].trackBarVolume.Value > this.playingControls[playerId].trackBarVolume.Minimum;
-            this.canUp[playerId] = true;
+            this.audioPlayers[playerId].Volume -= 1.0f;
+            this.playingControls[playerId].trackBarVolume.Value--;
         }
 
         private void timer_Tick(object sender, EventArgs e)
         {
-            string timeText = this.currentTime.ToString(@"mm\:ss")
-                + "/" + this.audioPlayers[0].Duration.ToString(@"mm\:ss");
-
-            for(int i = 0; i < playerCount; i++)
+            for (int i = 0; i < playerCount; i++)
             {
-                this.playingControls[i].PlayTime.Text = timeText;
+                if (this.audioPlayers[i].PlayState == PlayState.Playing)
+                {
+                    string timeText
+                        = this.audioPlayers[i].CurrentTime.ToString(@"mm\:ss")
+                        + "/"
+                        + this.audioPlayers[0].Duration.ToString(@"mm\:ss");
+
+                    this.playingControls[i].PlayTime.Text = timeText;
+                }
             }
         }
 
@@ -260,9 +275,8 @@ namespace MotionCaptureAudio
 
                 for (int i = 0; i < playerCount; i++)
                 {
-                    this.playingControls[i].trackBarVolume.Value = (int)(this.audioPlayers[i].Volume * 10);
-                    this.canUp[i] = true;
-                    this.canDown[i] = true;
+                    this.audioPlayers[i].Volume = 5.0f;
+                    this.playingControls[i].trackBarVolume.Value = 5;
                 }
             }
         }

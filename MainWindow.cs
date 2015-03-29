@@ -1,12 +1,9 @@
-﻿using System;
-using System.ComponentModel;
-using System.Threading;
-using System.Windows.Forms;
-using System.Windows.Threading;
-using OpenNI;
+﻿using OpenNI;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Diagnostics;
+using System.Windows.Forms;
+using System.Windows.Threading;
 
 namespace MotionCaptureAudio
 {
@@ -92,7 +89,6 @@ namespace MotionCaptureAudio
         #endregion constructors
 
         #region methods
-        #endregion methods
 
         protected override void OnLoad(EventArgs e)
         {
@@ -168,7 +164,8 @@ namespace MotionCaptureAudio
 
         private void jumpDetected(object sender, EventArgs e)
         {
-            if (this.currentState != CommandState.jump && this.currentState != CommandState.appEnd)
+            if ((this.currentState != CommandState.jump) &&
+                (this.currentState != CommandState.appEnd))
             {
                 this.message = Terminate;
                 this.startMessageTimer();
@@ -207,7 +204,9 @@ namespace MotionCaptureAudio
 
         private void leftHandDownDetected(object sender, EventArgs e)
         {
-            if (this.player.canDown[this.playerId] && this.currentState != CommandState.volumeDown && this.currentState != CommandState.appEnd)
+            if (this.player.CanDown(this.playerId) &&
+                (this.currentState != CommandState.volumeDown) &&
+                (this.currentState != CommandState.appEnd))
             {
                 this.message = VolumeDown;
                 this.startMessageTimer();
@@ -219,7 +218,9 @@ namespace MotionCaptureAudio
 
         private void leftHandUpDetected(object sender, EventArgs e)
         {
-            if (this.player.canUp[this.playerId] && this.currentState != CommandState.volumeUp && this.currentState != CommandState.appEnd)
+            if (this.player.CanUp(this.playerId) &&
+                (this.currentState != CommandState.volumeUp) &&
+                (this.currentState != CommandState.appEnd))
             {
                 this.message = VolumeUp;
                 this.startMessageTimer();
@@ -231,7 +232,9 @@ namespace MotionCaptureAudio
 
         private void rightHandUpDetected(object sender, EventArgs e)
         {
-            if (this.player.canPlay && this.currentState != CommandState.playPausecChange && this.currentState != CommandState.appEnd)
+            if (this.player.canPlay &&
+                (this.currentState != CommandState.playPausecChange) &&
+                (this.currentState != CommandState.appEnd))
             {
                 this.message = (this.player.IsPlaying(this.playerId)) ? PauseMusic : PlayMusic;
                 this.startMessageTimer();
@@ -243,12 +246,14 @@ namespace MotionCaptureAudio
 
         private void rightHandDownDetected(object sender, EventArgs e)
         {
-            if (this.player.canPlay && this.currentState != CommandState.playerChange && this.currentState != CommandState.appEnd)
+            if (this.player.canPlay &&
+                (this.currentState != CommandState.playerChange) &&
+                (this.currentState != CommandState.appEnd))
             {
                 this.message = ChangePlayer;
                 this.startMessageTimer();
 
-                this.playerId = this.playerId == 2 ? 0 : ++this.playerId;
+                this.playerId = (this.playerId == 2) ? 0 : ++this.playerId;
                 this.currentState = CommandState.playerChange;
                 this.player.backColorChange(this.playerId);
             }
@@ -256,7 +261,8 @@ namespace MotionCaptureAudio
 
         private void idleDetected(object sender, EventArgs e)
         {
-            if (this.currentState != CommandState.none && this.currentState != CommandState.appEnd)
+            if ((this.currentState != CommandState.none) &&
+                (this.currentState != CommandState.appEnd))
             {
                 this.currentState = CommandState.none;
             }
@@ -267,9 +273,8 @@ namespace MotionCaptureAudio
             if (e.Status == CalibrationStatus.OK)
             {
                 userGene.SkeletonCapability.StartTracking(e.ID);
-                this.player.CalibrationCompleted(0);
-                this.player.CalibrationCompleted(1);
-                this.player.CalibrationCompleted(2);
+
+                this.player.CalibrationCompleted();
             }
         }
 
@@ -281,9 +286,7 @@ namespace MotionCaptureAudio
                 Console.WriteLine(String.Format("ユーザ検出: {0}", e.ID) + "　人数は" + this.detectionCount);
                 userGene.SkeletonCapability.RequestCalibration(e.ID, true);
 
-                this.player.DetectedUser(0);
-                this.player.DetectedUser(1);
-                this.player.DetectedUser(2);
+                this.player.DetectedUser();
             }
         }
 
@@ -292,9 +295,7 @@ namespace MotionCaptureAudio
             this.detectionCount--;
             Console.WriteLine(String.Format("ユーザ消失: {0}", e.ID) + "　人数は" + this.detectionCount);
 
-            this.player.LostUser(0);
-            this.player.LostUser(1);
-            this.player.LostUser(2);
+            this.player.LostUser();
         }
 
         private void ReaderThread()
@@ -330,9 +331,16 @@ namespace MotionCaptureAudio
         private void draw(int user, Dictionary<SkeletonJoint, SkeletonJointPosition> pointDict)
         {
             Graphics g = Graphics.FromImage(this.img);
-            if(user == 1) g.FillRectangle(Brushes.Black, g.VisibleClipBounds);
 
-            Color color = user == this.currentUserId ? ((user == 1) ? Color.OrangeRed : Color.DeepSkyBlue) : Color.White;
+            if ((this.detectionCount < 2) ||
+                ((this.detectionCount > 1) && (user == 1)))
+            {
+                g.FillRectangle(Brushes.Black, g.VisibleClipBounds);
+            }
+
+            Color color = (user == this.currentUserId)
+                        ? ((user == 1) ? Color.OrangeRed : Color.DeepSkyBlue)
+                        : Color.White;
 
             if (!string.IsNullOrEmpty(this.message))
             {
@@ -402,7 +410,12 @@ namespace MotionCaptureAudio
             this.joints[user][joint] = pos;
         }
 
-        private void DrawLine(Graphics g, Dictionary<SkeletonJoint, SkeletonJointPosition> dict, SkeletonJoint j1, SkeletonJoint j2, Color color)
+        private void DrawLine(
+            Graphics g,
+            Dictionary<SkeletonJoint, SkeletonJointPosition> dict,
+            SkeletonJoint j1,
+            SkeletonJoint j2,
+            Color color)
         {
             Point3D pos1 = this.depth.ConvertRealWorldToProjective(dict[j1].Position);
             Point3D pos2 = this.depth.ConvertRealWorldToProjective(dict[j2].Position);
@@ -415,5 +428,7 @@ namespace MotionCaptureAudio
 
             this.pictBox.Invalidate();
         }
+
+        #endregion methods
     }
 }

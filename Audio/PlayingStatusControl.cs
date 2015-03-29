@@ -9,6 +9,22 @@ namespace MotionCaptureAudio
             InitializeComponent();
         }
 
+        internal bool CanUp
+        {
+            get
+            {
+                return (this.trackBarVolume.Value < this.trackBarVolume.Maximum);
+            }
+        }
+
+        internal bool CanDown
+        {
+            get
+            {
+                return (this.trackBarVolume.Value > this.trackBarVolume.Minimum);
+            }
+        }
+
         internal void DetectedUser()
         {
             this.Refresh();
