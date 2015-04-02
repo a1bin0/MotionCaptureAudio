@@ -339,7 +339,7 @@ namespace MotionCaptureAudio
             }
 
             Color color = (user == this.currentUserId)
-                        ? ((user != 1) ? Color.OrangeRed : Color.LightGreen)
+                        ? ((user == 1) ? Color.OrangeRed : Color.LightGreen)
                         : Color.White;
 
             if (!string.IsNullOrEmpty(this.message))
