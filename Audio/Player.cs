@@ -245,6 +245,20 @@ namespace MotionCaptureAudio
             this.playingControls[playerId].trackBarVolume.Value--;
         }
 
+        public void SetMaxVolume(int playerId)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action<int>(this.SetMaxVolume), playerId);
+                return;
+            }
+
+            while (this.CanUp(playerId))
+            {
+                this.VolumeUp(playerId);
+            }
+        }
+
         private void timer_Tick(object sender, EventArgs e)
         {
             for (int i = 0; i < playerCount; i++)

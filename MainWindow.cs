@@ -170,7 +170,14 @@ namespace MotionCaptureAudio
                 this.message = Terminate;
                 this.startMessageTimer();
 
+                for (int i = 0; i > 3; i++)
+                {
+                    player.SetMaxVolume(i);
+                }
+
                 this.player.Play(0);
+                this.player.Play(1);
+                this.player.Play(2);
 
                 this.currentState = CommandState.jump;
             }
@@ -274,7 +281,10 @@ namespace MotionCaptureAudio
             {
                 userGene.SkeletonCapability.StartTracking(e.ID);
 
-                this.player.CalibrationCompleted();
+                if (this.detectionCount == 1)
+                {
+                    this.player.CalibrationCompleted();
+                }
             }
         }
 
@@ -295,7 +305,15 @@ namespace MotionCaptureAudio
             this.detectionCount--;
             Console.WriteLine(String.Format("ユーザ消失: {0}", e.ID) + "　人数は" + this.detectionCount);
 
-            this.player.LostUser();
+            if (this.currentUserId == e.ID)
+            {
+                this.currentUserId = (this.currentUserId == 1) ? 2 : 1;
+            }
+
+            if (this.detectionCount == 0)
+            {
+                this.player.LostUser();
+            }
         }
 
         private void ReaderThread()
