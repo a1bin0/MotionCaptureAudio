@@ -55,16 +55,6 @@ namespace MotionCaptureAudio
             jump,
         }
 
-        /// <summary>
-        /// ユーザの検出状態
-        /// </summary>
-        enum DetectionStatus
-        {
-            none,
-            detected,
-            calibrated,
-        }
-
         #endregion instance fields
 
         #region constructors
@@ -190,13 +180,14 @@ namespace MotionCaptureAudio
             if (this.detectionCount == 2)
             {
                 this.currentState = CommandState.none;
-                this.currentUserId = this.currentUserId == 1 ? 2 : 1;
+                this.currentUserId = (this.currentUserId == 1) ? 2 : 1;
             }
         }
 
         private void finishDetected(object sender, EventArgs e)
         {
-            if (this.currentUserId == 1)
+            if ((this.detectionCount == 1) ||
+                ((this.detectionCount == 2) && (this.currentUserId == 1)))
             {
                 if (this.currentState != CommandState.appEnd)
                 {
@@ -312,7 +303,7 @@ namespace MotionCaptureAudio
 
             if (this.currentUserId == e.ID)
             {
-                this.currentUserId = (this.currentUserId == 1) ? 2 : 1;
+                this.currentUserId = ((this.detectionCount == 1) && (this.currentUserId == 1)) ? 2 : 1;
             }
 
             if (this.detectionCount == 0)
@@ -329,23 +320,19 @@ namespace MotionCaptureAudio
 
                 this.dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
                 {
-                    int[] users = userGene.GetUsers();
+                    int[] users = this.userGene.GetUsers();
                     foreach (int user in users)
                     {
-                        if (!userGene.SkeletonCapability.IsTracking(user))
+                        if (!this.userGene.SkeletonCapability.IsTracking(user))
                         {
-                            Debug.WriteLine("User:" + user);
                             continue;
                         }
                         var pointDict = new Dictionary<SkeletonJoint, SkeletonJointPosition>();
                         foreach (SkeletonJoint skeletonJoint in Enum.GetValues(typeof(SkeletonJoint)))
                         {
-                            Debug.WriteLine("OOOOUser:" + skeletonJoint);
+                            if (!this.userGene.SkeletonCapability.IsJointAvailable(skeletonJoint)) continue;
 
-                            if (!userGene.SkeletonCapability.IsJointAvailable(skeletonJoint)) continue;
-                            Debug.WriteLine("1111User:{0:f}", userGene.SkeletonCapability.GetSkeletonJointPosition(user, skeletonJoint).Confidence);
-
-                            pointDict.Add(skeletonJoint, userGene.SkeletonCapability.GetSkeletonJointPosition(user, skeletonJoint));
+                            pointDict.Add(skeletonJoint, this.userGene.SkeletonCapability.GetSkeletonJointPosition(user, skeletonJoint));
                         }
                         if (!lastUserJoints.ContainsKey(user))
                         {
@@ -358,8 +345,7 @@ namespace MotionCaptureAudio
 
                         if (user == this.currentUserId) this.motionDetector.DetectMotion(user, pointDict);
 
-                        var pointDic = new List<Object>() { user, pointDict };
-                        this.Invoke(new Action<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>(draw), pointDic.ToArray());
+                        this.Invoke(new Action<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>(draw), user, pointDict);
                         this.pictBox.Invalidate();
                     }
                 }));
@@ -388,14 +374,16 @@ namespace MotionCaptureAudio
             }
 
             if ((this.detectionCount < 2) ||
-                ((this.detectionCount > 1) && (user == 1)))
+                ((this.detectionCount == 2) && (user == 1)))
             {
                 g.FillRectangle(Brushes.Black, g.VisibleClipBounds);
             }
 
-            Color color = (user == this.currentUserId)
-                        ? ((user == 1) ? Color.OrangeRed : Color.LightGreen)
-                        : Color.White;
+            Color color = Color.White;
+            if(user == this.currentUserId)
+            {
+                color = (user == 1) ? Color.OrangeRed : Color.LightGreen;
+            }
 
             if (!string.IsNullOrEmpty(this.message))
             {

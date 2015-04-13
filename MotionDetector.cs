@@ -8,7 +8,7 @@ namespace MotionCaptureAudio
     class MotionDetector
     {
         private DepthGenerator depth;
-        private Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>> histryData = new Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>>();
+        private Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>> historyData = new Dictionary<int, List<Dictionary<SkeletonJoint, SkeletonJointPosition>>>();
         private readonly int positionMaxCount = 10;
         private readonly double confidenceBase = 0.95;
 
@@ -31,8 +31,8 @@ namespace MotionCaptureAudio
 
         public void DetectMotion(int userID, Dictionary<SkeletonJoint, SkeletonJointPosition> skeleton)
         {
-            saveHistory(userID, skeleton);
-            List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions = this.histryData[userID];
+            this.saveHistory(userID, skeleton);
+            List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions = this.historyData[userID];
 
             if (positions.Count >= this.positionMaxCount)
             {
@@ -74,12 +74,12 @@ namespace MotionCaptureAudio
 
         private void saveHistory(int userID, Dictionary<SkeletonJoint, SkeletonJointPosition> skeleton)
         {
-            if (!this.histryData.ContainsKey(userID))
+            if (!this.historyData.ContainsKey(userID))
             {
-                this.histryData.Add(userID, new List<Dictionary<SkeletonJoint, SkeletonJointPosition>>());
+                this.historyData.Add(userID, new List<Dictionary<SkeletonJoint, SkeletonJointPosition>>());
             }
 
-            List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions = this.histryData[userID];
+            List<Dictionary<SkeletonJoint, SkeletonJointPosition>> positions = this.historyData[userID];
 
             if (positions.Count > this.positionMaxCount - 1) positions.RemoveAt(0);
 
@@ -264,7 +264,11 @@ namespace MotionCaptureAudio
         {
             for (int i = 0; i < this.positionMaxCount - 1; i++)
             {
-                if (positions[i][SkeletonJoint.RightHand].Confidence < this.confidenceBase) return false;
+                if ((positions[i][SkeletonJoint.LeftHand].Confidence < this.confidenceBase)) return false;
+                if (depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position).Y <
+                    depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftShoulder].Position).Y)  return false;
+                if (depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position).Y >
+                    depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHip].Position).Y) return false;
 
                 Point3D oldLeftHand = depth.ConvertRealWorldToProjective(positions[i][SkeletonJoint.LeftHand].Position);
                 Point3D newLeftHand = depth.ConvertRealWorldToProjective(positions[i + 1][SkeletonJoint.LeftHand].Position);
