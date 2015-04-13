@@ -1,6 +1,7 @@
 ﻿using OpenNI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Windows.Threading;
@@ -34,10 +35,11 @@ namespace MotionCaptureAudio
         private System.Windows.Forms.Timer countDownTimer = null;
         private string message = string.Empty;
         private CommandState currentState = CommandState.none;
-        private Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>> joints = new Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>();
 
         private int detectionCount = 0;
         private int detectionMaxCount = 2;
+
+        private Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>> lastUserJoints = new Dictionary<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>();
 
         /// <summary>
         /// ステートです
@@ -185,7 +187,7 @@ namespace MotionCaptureAudio
 
         private void bothHandUpDetected(object sender, EventArgs e)
         {
-            if(this.detectionCount == 2)
+            if (this.detectionCount == 2)
             {
                 this.currentState = CommandState.none;
                 this.currentUserId = this.currentUserId == 1 ? 2 : 1;
@@ -296,7 +298,10 @@ namespace MotionCaptureAudio
                 Console.WriteLine(String.Format("ユーザ検出: {0}", e.ID) + "　人数は" + this.detectionCount);
                 userGene.SkeletonCapability.RequestCalibration(e.ID, true);
 
-                this.player.DetectedUser();
+                if (this.detectionCount == 1)
+                {
+                    this.player.DetectedUser();
+                }
             }
         }
 
@@ -327,17 +332,32 @@ namespace MotionCaptureAudio
                     int[] users = userGene.GetUsers();
                     foreach (int user in users)
                     {
-                        if (!userGene.SkeletonCapability.IsTracking(user)) continue;
-
+                        if (!userGene.SkeletonCapability.IsTracking(user))
+                        {
+                            Debug.WriteLine("User:" + user);
+                            continue;
+                        }
                         var pointDict = new Dictionary<SkeletonJoint, SkeletonJointPosition>();
                         foreach (SkeletonJoint skeletonJoint in Enum.GetValues(typeof(SkeletonJoint)))
                         {
+                            Debug.WriteLine("OOOOUser:" + skeletonJoint);
+
                             if (!userGene.SkeletonCapability.IsJointAvailable(skeletonJoint)) continue;
+                            Debug.WriteLine("1111User:{0:f}", userGene.SkeletonCapability.GetSkeletonJointPosition(user, skeletonJoint).Confidence);
+
                             pointDict.Add(skeletonJoint, userGene.SkeletonCapability.GetSkeletonJointPosition(user, skeletonJoint));
                         }
+                        if (!lastUserJoints.ContainsKey(user))
+                        {
+                            lastUserJoints.Add(user, pointDict);
+                        }
+                        else
+                        {
+                            this.lastUserJoints[user] = pointDict;
+                        }
 
-                        if(user == this.currentUserId) this.motionDetector.DetectMotion(user, pointDict);
-                        
+                        if (user == this.currentUserId) this.motionDetector.DetectMotion(user, pointDict);
+
                         var pointDic = new List<Object>() { user, pointDict };
                         this.Invoke(new Action<int, Dictionary<SkeletonJoint, SkeletonJointPosition>>(draw), pointDic.ToArray());
                         this.pictBox.Invalidate();
@@ -349,6 +369,23 @@ namespace MotionCaptureAudio
         private void draw(int user, Dictionary<SkeletonJoint, SkeletonJointPosition> pointDict)
         {
             Graphics g = Graphics.FromImage(this.img);
+
+            foreach (SkeletonJoint item in Enum.GetValues(typeof(SkeletonJoint)))
+            {
+                if ((pointDict.ContainsKey(item) && (this.lastUserJoints[user].ContainsKey(item))))
+                {
+                    if (!pointDict[item].Position.Equals(this.lastUserJoints[user][item].Position))
+                    {
+                        break;
+                    }
+                }
+                else
+                {
+                    break;
+                }
+                g.FillRectangle(Brushes.Black, g.VisibleClipBounds);
+                return;
+            }
 
             if ((this.detectionCount < 2) ||
                 ((this.detectionCount > 1) && (user == 1)))
@@ -412,20 +449,6 @@ namespace MotionCaptureAudio
             }
 
             g.Dispose();
-        }
-
-        private void GetJoint(int user, SkeletonJoint joint)
-        {
-            SkeletonJointPosition pos = this.userGene.SkeletonCapability.GetSkeletonJointPosition(user, joint);
-            if (pos.Position.Z == 0)
-            {
-                pos.Confidence = 0;
-            }
-            else
-            {
-                pos.Position = this.depth.ConvertRealWorldToProjective(pos.Position);
-            }
-            this.joints[user][joint] = pos;
         }
 
         private void DrawLine(
