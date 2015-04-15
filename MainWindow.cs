@@ -18,6 +18,7 @@ namespace MotionCaptureAudio
         private const string PauseMusic = "Pause music!!";
         private const string ChangePlayer = "Player changed!!";
         private const string Terminate = "Application terminate...";
+        private const string Full = "Full volume play!!";
 
         private int currentUserId = 1;
         private int countDownTime = 3;
@@ -159,7 +160,7 @@ namespace MotionCaptureAudio
             if ((this.currentState != CommandState.jump) &&
                 (this.currentState != CommandState.appEnd))
             {
-                this.message = Terminate;
+                this.message = Full;
                 this.startMessageTimer();
 
                 for (int i = 0; i > 3; i++)
