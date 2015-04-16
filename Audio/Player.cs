@@ -67,7 +67,7 @@ namespace MotionCaptureAudio
                 e.PlayTime.Text = "00:00 / 00:00";
                 e.PictPlay.Visible = false;
                 e.PictPause.Visible = true;
-                e.trackBarVolume.Value = 5;
+                e.trackBarVolume.Value = 6;
                 count++;
             });
 
@@ -229,8 +229,8 @@ namespace MotionCaptureAudio
                 return;
             }
 
-            this.audioPlayers[playerId].Volume += 1.0f;
-            this.playingControls[playerId].trackBarVolume.Value++;
+            this.audioPlayers[playerId].Volume += 0.2f;
+            this.playingControls[playerId].trackBarVolume.Value += 2;
         }
 
         public void VolumeDown(int playerId)
@@ -241,8 +241,8 @@ namespace MotionCaptureAudio
                 return;
             }
 
-            this.audioPlayers[playerId].Volume -= 1.0f;
-            this.playingControls[playerId].trackBarVolume.Value--;
+            this.audioPlayers[playerId].Volume -= 0.2f;
+            this.playingControls[playerId].trackBarVolume.Value -= 2;
         }
 
         public void SetMaxVolume(int playerId)
@@ -289,8 +289,8 @@ namespace MotionCaptureAudio
 
                 for (int i = 0; i < playerCount; i++)
                 {
-                    this.audioPlayers[i].Volume = 5.0f;
-                    this.playingControls[i].trackBarVolume.Value = 5;
+                    this.audioPlayers[i].Volume = 0.6f;
+                    this.playingControls[i].trackBarVolume.Value = 6;
                 }
             }
         }

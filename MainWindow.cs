@@ -77,6 +77,8 @@ namespace MotionCaptureAudio
             this.userGene.SkeletonCapability.SetSkeletonProfile(SkeletonProfile.All);
 
             this.context.StartGeneratingAll();
+
+            this.WindowState = FormWindowState.Maximized;
         }
 
         #endregion constructors

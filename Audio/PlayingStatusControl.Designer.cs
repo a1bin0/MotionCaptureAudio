@@ -81,7 +81,7 @@
             this.trackBarVolume.Orientation = System.Windows.Forms.Orientation.Vertical;
             this.trackBarVolume.Size = new System.Drawing.Size(45, 217);
             this.trackBarVolume.TabIndex = 24;
-            this.trackBarVolume.Value = 3;
+            this.trackBarVolume.Value = 6;
             // 
             // PlayingStatusControl
             // 

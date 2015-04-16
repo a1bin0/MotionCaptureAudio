@@ -55,7 +55,8 @@
             // pictBox
             // 
             this.pictBox.BackColor = System.Drawing.Color.Black;
-            this.pictBox.Dock = System.Windows.Forms.DockStyle.Left;
+            this.pictBox.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.pictBox.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pictBox.Location = new System.Drawing.Point(191, 0);
             this.pictBox.Name = "pictBox";
             this.pictBox.Size = new System.Drawing.Size(993, 720);
